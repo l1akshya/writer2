@@ -13,6 +13,22 @@ interface EducationEntry {
   isPresent: boolean;
 }
 
+interface ExperienceItem {
+  description: string;
+}
+
+interface ExperienceEntry {
+  position: string;
+  company: string;
+  location: string;
+  startMonth: string;
+  startYear: string;
+  endMonth: string;
+  endYear: string;
+  isPresent: boolean;
+  items: ExperienceItem[];
+}
+
 interface BasicInfo {
   name: string;
   contact: string;
@@ -48,6 +64,18 @@ const TemplateForm: React.FC = () => {
     outputFilename: ''
   });
   const [status, setStatus] = useState('');
+
+  const [experienceEntries, setExperienceEntries] = useState<ExperienceEntry[]>([{
+    position: '',
+    company: '',
+    location: '',
+    startMonth: '',
+    startYear: '',
+    endMonth: '',
+    endYear: '',
+    isPresent: false,
+    items: [{ description: '' }]
+  }]);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -102,10 +130,67 @@ const TemplateForm: React.FC = () => {
     }
   };
 
+  const handleExperienceChange = (index: number, field: keyof Omit<ExperienceEntry, 'items'>, value: string | boolean) => {
+    setExperienceEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[index] = {
+        ...newEntries[index],
+        [field]: value,
+        ...(field === 'isPresent' && value === true ? { endMonth: 'Present', endYear: 'Present' } : {})
+      };
+      return newEntries;
+    });
+  };
+  
+  const handleExperienceItemChange = (expIndex: number, itemIndex: number, value: string) => {
+    setExperienceEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[expIndex].items[itemIndex] = { description: value };
+      return newEntries;
+    });
+  };
+  
+  const addExperienceEntry = () => {
+    setExperienceEntries(prev => [...prev, {
+      position: '',
+      company: '',
+      location: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      isPresent: false,
+      items: [{ description: '' }]
+    }]);
+  };
+  
+  const removeExperienceEntry = (index: number) => {
+    if (experienceEntries.length > 1) {
+      setExperienceEntries(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+  
+  const addExperienceItem = (expIndex: number) => {
+    setExperienceEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[expIndex].items.push({ description: '' });
+      return newEntries;
+    });
+  };
+  
+  const removeExperienceItem = (expIndex: number, itemIndex: number) => {
+    if (experienceEntries[expIndex].items.length > 1) {
+      setExperienceEntries(prev => {
+        const newEntries = [...prev];
+        newEntries[expIndex].items = newEntries[expIndex].items.filter((_, i) => i !== itemIndex);
+        return newEntries;
+      });
+    }
+  };
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('Generating PDF...');
-
+  
     const basicInfoPayload = {
       'Place_Holder_Name': basicInfo.name,
       'Place_Holder_contact': basicInfo.contact,
@@ -113,7 +198,7 @@ const TemplateForm: React.FC = () => {
       'Place_Holder_linkedin': basicInfo.linkedin,
       'Place_Holder_github': basicInfo.github,
     };
-
+  
     try {
       const response = await fetch('http://127.0.0.1:8000/generate-pdf', {
         method: 'POST',
@@ -124,10 +209,11 @@ const TemplateForm: React.FC = () => {
           template_name: selectedTemplate,
           basic_info: basicInfoPayload,
           education_entries: educationEntries,
+          experience_entries: experienceEntries,
           output_filename: basicInfo.outputFilename,
         }),
       });
-
+  
       const data = await response.json();
       setStatus(response.ok ? 'PDF generated successfully!' : `Error: ${data.detail}`);
     } catch (error) {
@@ -224,7 +310,7 @@ const TemplateForm: React.FC = () => {
                       {label}:
                       <input
                         type="text"
-                        value={entry[field as keyof EducationEntry]}
+                        value={String(entry[field as keyof EducationEntry])}
                         onChange={(e) => handleEducationChange(index, field as keyof EducationEntry, e.target.value)}
                         className="mt-1 block w-full p-2 border rounded-md"
                         required
@@ -307,6 +393,164 @@ const TemplateForm: React.FC = () => {
             </div>
           ))}
         </div>
+{/* Experience Section */}
+<div className="bg-gray-50 p-4 rounded-lg space-y-4">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-xl font-semibold">Experience Details</h2>
+    <button
+      type="button"
+      onClick={addExperienceEntry}
+      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+    >
+      Add Experience
+    </button>
+  </div>
+
+  {experienceEntries.map((entry, expIndex) => (
+    <div key={expIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
+      {experienceEntries.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeExperienceEntry(expIndex)}
+          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+        >
+          Remove
+        </button>
+      )}
+      
+      <h3 className="text-lg font-semibold mb-2">Experience Entry {expIndex + 1}</h3>
+      
+      <div className="space-y-4">
+        {/* Basic Experience Fields */}
+        {[
+          ['position', 'Position Title'],
+          ['company', 'Company Name'],
+          ['location', 'Location']
+        ].map(([field, label]) => (
+          <div key={field}>
+            <label className="block text-sm font-medium mb-2">
+              {label}:
+              <input
+                type="text"
+                value={String(entry[field as keyof Omit<ExperienceEntry, 'items'>])}
+                onChange={(e) => handleExperienceChange(expIndex, field as keyof Omit<ExperienceEntry, 'items'>, e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+        ))}
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Start Date Fields */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Start Month:
+              <input
+                type="text"
+                value={entry.startMonth}
+                onChange={(e) => handleExperienceChange(expIndex, 'startMonth', e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Start Year:
+              <input
+                type="text"
+                value={entry.startYear}
+                onChange={(e) => handleExperienceChange(expIndex, 'startYear', e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+
+          {/* Present Toggle */}
+          <div className="col-span-2">
+            <label className="flex items-center space-x-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={entry.isPresent}
+                onChange={(e) => handleExperienceChange(expIndex, 'isPresent', e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-500"
+              />
+              <span>Currently Working Here</span>
+            </label>
+          </div>
+
+          {/* End Date Fields - Only show if not present */}
+          {!entry.isPresent && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  End Month:
+                  <input
+                    type="text"
+                    value={entry.endMonth}
+                    onChange={(e) => handleExperienceChange(expIndex, 'endMonth', e.target.value)}
+                    className="mt-1 block w-full p-2 border rounded-md"
+                    required
+                  />
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  End Year:
+                  <input
+                    type="text"
+                    value={entry.endYear}
+                    onChange={(e) => handleExperienceChange(expIndex, 'endYear', e.target.value)}
+                    className="mt-1 block w-full p-2 border rounded-md"
+                    required
+                  />
+                </label>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Experience Items/Bullet Points */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-md font-medium">Description Points</h4>
+            <button
+              type="button"
+              onClick={() => addExperienceItem(expIndex)}
+              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Add Point
+            </button>
+          </div>
+          
+          {entry.items.map((item, itemIndex) => (
+            <div key={itemIndex} className="flex gap-2">
+              <input
+                type="text"
+                value={item.description}
+                onChange={(e) => handleExperienceItemChange(expIndex, itemIndex, e.target.value)}
+                className="flex-1 p-2 border rounded-md"
+                placeholder="Enter description point"
+                required
+              />
+              {entry.items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeExperienceItem(expIndex, itemIndex)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
         {/* Output Filename */}
         <div>

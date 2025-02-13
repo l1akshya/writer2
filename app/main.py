@@ -16,8 +16,8 @@ app.add_middleware(
 )
 
 # Original paths
-TEMPLATE_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer\Tempelates"
-OUTPUT_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer\outputs"
+TEMPLATE_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\Tempelates"
+OUTPUT_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\outputs"
 
 # Original placeholders with education section separated
 BASIC_PLACEHOLDERS = {
@@ -38,6 +38,17 @@ EDUCATION_PLACEHOLDERS = {
     "PlaceHolderEndYear": "\\makebox[2cm][l]{End Year}"
 }
 
+EXPERIENCE_PLACEHOLDERS = {
+    "PlaceHolderExperiencePosition1": "Position Title",
+    "PlaceHolderExperiencePositionCompany": "Company Name",
+    "PlaceHolderExperiencePositionLocation": "Location",
+    "PlaceHolderExperiencePositionStartMonth": "Start Month",
+    "PlaceHolderExperiencePositionStartYear": "Start Year",
+    "PlaceHolderExperiencePositionEndMonth": "End Month",
+    "PlaceHolderExperiencePositionEndYear": "End Year",
+    "PlaceHolderExpeienceItem1": "Experience Description"
+}
+
 class EducationEntry(BaseModel):
     education: str
     course: str
@@ -48,10 +59,25 @@ class EducationEntry(BaseModel):
     endYear: str
     isPresent: bool = False  # Added isPresent field with default value False
 
+class ExperienceItem(BaseModel):
+    description: str
+
+class ExperienceEntry(BaseModel):
+    position: str
+    company: str
+    location: str
+    startMonth: str
+    startYear: str
+    endMonth: str
+    endYear: str
+    isPresent: bool = False
+    items: List[ExperienceItem]
+
 class TemplateData(BaseModel):
     template_name: str
     basic_info: Dict[str, str]
     education_entries: List[EducationEntry]
+    experience_entries: List[ExperienceEntry]
     output_filename: str
 
 @app.get("/")
@@ -77,7 +103,8 @@ async def get_placeholders():
     """Returns all available placeholders."""
     return {
         "basic_info": BASIC_PLACEHOLDERS,
-        "education": EDUCATION_PLACEHOLDERS
+        "education": EDUCATION_PLACEHOLDERS,
+        "experience": EXPERIENCE_PLACEHOLDERS
     }
 
 def generate_education_latex(entries: List[EducationEntry]) -> str:
@@ -104,6 +131,29 @@ def generate_education_latex(entries: List[EducationEntry]) -> str:
     
     return "\\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n\\resumeSubHeadingListEnd"
 
+
+def generate_experience_latex(entries: List[ExperienceEntry]) -> str:
+    """Generates LaTeX code for multiple experience entries."""
+    latex_entries = []
+    for entry in entries:
+        date_range = f"{entry.startMonth} {entry.startYear} -- {'Present' if entry.isPresent else f'{entry.endMonth} {entry.endYear}'}"
+        
+        # Create the experience items list
+        items_latex = "      \\resumeItemListStart\n"
+        for item in entry.items:
+            items_latex += f"        \\resumeItem{{{item.description}}}\n"
+        items_latex += "      \\resumeItemListEnd"
+        
+        latex_entry = (
+            f"    \\resumeSubheading\n"
+            f"      {{{entry.position}}}{{{date_range}}}\n"
+            f"      {{{entry.company}}}{{{entry.location}}}\n"
+            f"{items_latex}"
+        )
+        latex_entries.append(latex_entry)
+    
+    return "\\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n\\resumeSubHeadingListEnd"
+
 @app.post("/generate-pdf")
 async def generate_pdf(template_data: TemplateData):
     """Generates a PDF from a template with provided data."""
@@ -111,7 +161,6 @@ async def generate_pdf(template_data: TemplateData):
     template_path = os.path.join(TEMPLATE_FOLDER, template_data.template_name)
     if not os.path.exists(template_path):
         raise HTTPException(status_code=404, detail="Template not found")
-    
     try:
         # Read template
         with open(template_path, "r", encoding="utf-8") as f:
@@ -136,6 +185,21 @@ async def generate_pdf(template_data: TemplateData):
         education_section = generate_education_latex(template_data.education_entries)
         modified_code = modified_code.replace(education_pattern, education_section)
         
+        # Replace experience section
+        experience_pattern = (
+            "  \\resumeSubHeadingListStart\n"
+            "    \\resumeSubheading\n"
+            "      {PlaceHolderExperiencePosition1}{PlaceHolderExperiencePositionStartMonth PlaceHolderExperiencePositionStartYear -- PlaceHolderExperiencePositionEndMonth PlaceHolderExperiencePositionStartYear}\n"
+            "      {PlaceHolderExperiencePositionCompany}{PlaceHolderExperiencePositionLocation}\n"
+            "      \\resumeItemListStart\n"
+            "        \\resumeItem{PlaceHolderExperienceItem1}\n"
+            "      \\resumeItemListEnd\n"
+            "  \\resumeSubHeadingListEnd"
+        )
+        experience_section = generate_experience_latex(template_data.experience_entries)
+        print(experience_section)
+        modified_code = modified_code.replace(experience_pattern, experience_section)
+        print(modified_code)
         # Ensure output directory exists
         os.makedirs(OUTPUT_FOLDER, exist_ok=True)
         
