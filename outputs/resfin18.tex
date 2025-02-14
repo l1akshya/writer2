@@ -68,12 +68,20 @@
   }
 }
 
+\newcommand{\resumeEducation}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#4} \\
+      \textit{\small#3} & \textit{#2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+% Experience section command
 \newcommand{\resumeSubheading}[4]{
   \vspace{-2pt}\item
     \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
-      \textbf{#1} & \\
-      \textbf{#2} & \textit{#4} \\
-      \textit{\small#3} &  \\
+      \textbf{#1} & \textbf{#2} \\
+      \textit{\small#3} & \textit{#4} \\
     \end{tabular*}\vspace{-7pt}
 }
 
@@ -114,28 +122,18 @@
 
 \begin{center}
     \textbf{\Huge \scshape Lokesh Hariramani} \\ \vspace{1pt}
-    \small +91 9111200036 $|$ \href{mailto:x@x.com}{\underline{lakshya1hariramani@gmail.com}} $|$ 
+    \small 9111200036 $|$ \href{mailto:x@x.com}{\underline{lakshya1hariramani@gmail.com}} $|$ 
     \href{}{\underline{https://www.linkedin.com/in/lokesh-hariramani-13aa3126a/}} $|$
     \href{}{\underline{https://github.com/l1akshya}}
 \end{center}
 
 \section{Education}
 \resumeSubHeadingListStart
-    \resumeSubheading
-      {International Institute of Information Technology }
+    \resumeEducation
+      {International Institute of Information Technology}
       {Naya Raipur, Chhattisgarh}
-      {Bachelors of Technology Electronics and Communication Engineering}
+      {Bachelors in Technology Electronics and Communication Engineering}
       {November 2022 -- Present}
-    \resumeSubheading
-      {Dronacharya Public School}
-      {Raipur, Chhattisgarh}
-      {CBSE 12th Board}
-      {March 2020 -- March 2022}
-    \resumeSubheading
-      {Bhavans}
-      {Raipur, Chhattisgarh}
-      {CBSE 10th Board}
-      {January 2012 -- February 2020}
 \resumeSubHeadingListEnd
 
 
@@ -145,11 +143,9 @@
 \resumeSubHeadingListStart
     \resumeSubheading
       {Auto and Control Intern }{June 2024 -- August 2024}
-      {ARDE}{Pune, Maharashtra}
+      {Armament Development and Research Establishment}{Pune, Maharashtra}
       \resumeItemListStart
         \resumeItem{Control System Design}
-        \resumeItem{Python Simulation}
-        \resumeItem{Motor Controls}
       \resumeItemListEnd
 \resumeSubHeadingListEnd
 

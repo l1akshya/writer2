@@ -121,7 +121,7 @@ def generate_education_latex(entries: List[EducationEntry]) -> str:
             date_range = f"{entry.startMonth} {entry.startYear} -- {entry.endMonth} {entry.endYear}"
             
         latex_entry = (
-            f"    \\resumeSubheading\n"
+            f"    \\resumeEducation\n"
             f"      {{{entry.education}}}\n"
             f"      {{{entry.location}}}\n"
             f"      {{{entry.course}}}\n"
@@ -175,7 +175,7 @@ async def generate_pdf(template_data: TemplateData):
         # Replace education section
         education_pattern = (
             "\\resumeSubHeadingListStart\n"
-            "    \\resumeSubheading\n"
+            "    \\resumeEducation\n"
             "      {PlaceHolderEducation}\n"
             "      {PlaceHolderLocation1}\n"
             "      {PlaceHolderCourse}\n"
