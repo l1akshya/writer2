@@ -715,13 +715,7 @@ const TemplateForm: React.FC = () => {
   ))}
 </div>
 
-
-
-
-
-
-
-{/* Experience Section */}
+{/* Project Section */}
 <div className="bg-gray-50 p-4 rounded-lg space-y-4">
   <div className="flex justify-between items-center mb-4">
     <h2 className="text-xl font-semibold">Project Details</h2>
@@ -878,8 +872,6 @@ const TemplateForm: React.FC = () => {
     </div>
   ))}
 </div>
-
-
 
         {/* Output Filename */}
         <div>
