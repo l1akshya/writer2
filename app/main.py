@@ -50,6 +50,17 @@ EXPERIENCE_PLACEHOLDERS = {
     "PlaceHolderExpeienceItem1": "Experience Description"
 }
 
+
+PROJECT_PLACEHOLDERS = {
+    "PlaceHolderProjectTitle": "Project Title",
+    "PlaceHolderProjectTool1": "Project Tools",
+    "PlaceHolderProjectStartMonth": "Start Month",
+    "PlaceHolderProjectStartYear": "Start Year",
+    "PlaceHolderProjectEndMonth": "End Month",
+    "PlaceHolderProjectEndYear": "End Year",
+    "PlaceHolderProjectItem1": "Project Description"
+}
+
 class EducationEntry(BaseModel):
     education: str
     course: str
@@ -75,11 +86,26 @@ class ExperienceEntry(BaseModel):
     isPresent: bool = False
     items: List[ExperienceItem]
 
+
+class ProjectItem(BaseModel):
+    description: str
+
+class ProjectEntry(BaseModel):
+    title: str
+    tools: str
+    startMonth: str
+    startYear: str
+    endMonth: str
+    endYear: str
+    isPresent: bool = False
+    items: List[ProjectItem]
+
 class TemplateData(BaseModel):
     template_name: str
     basic_info: Dict[str, str]
     education_entries: List[EducationEntry]
     experience_entries: List[ExperienceEntry]
+    project_entries:List[ProjectEntry]
     output_filename: str
 
 @app.get("/")
@@ -106,7 +132,8 @@ async def get_placeholders():
     return {
         "basic_info": BASIC_PLACEHOLDERS,
         "education": EDUCATION_PLACEHOLDERS,
-        "experience": EXPERIENCE_PLACEHOLDERS
+        "experience": EXPERIENCE_PLACEHOLDERS,
+        "project": PROJECT_PLACEHOLDERS
     }
 
 def generate_education_latex(entries: List[EducationEntry]) -> str:
@@ -157,6 +184,28 @@ def generate_experience_latex(entries: List[ExperienceEntry]) -> str:
     
     return "\\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n\\resumeSubHeadingListEnd"
 
+
+def generate_project_latex(entries: List[ProjectEntry]) -> str:
+    """Generates LaTeX code for multiple project entries."""
+    latex_entries = []
+    for entry in entries:
+        date_range = f"{entry.startMonth} {entry.startYear} -- {'Present' if entry.isPresent else f'{entry.endMonth} {entry.endYear}'}"
+        
+        # Create the project items list
+        items_latex = "          \\resumeItemListStart\n"
+        for item in entry.items:
+            items_latex += f"            \\resumeItem{{{item.description}}}\n"
+        items_latex += "          \\resumeItemListEnd"
+        
+        latex_entry = (
+            f"      \\resumeProjectHeading\n"
+            f"          {{\\textbf{{{entry.title}}} $|$ \\emph{{{entry.tools}}}}}{{{date_range}}}\n"
+            f"{items_latex}"
+        )
+        latex_entries.append(latex_entry)
+    
+    return "    \\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n    \\resumeSubHeadingListEnd"
+
 @app.post("/generate-pdf")
 async def generate_pdf(template_data: TemplateData):
     """Generates a PDF from a template with provided data."""
@@ -201,9 +250,21 @@ async def generate_pdf(template_data: TemplateData):
             "  \\resumeSubHeadingListEnd"
         )
         experience_section = generate_experience_latex(template_data.experience_entries)
-        print(experience_section)
         modified_code = modified_code.replace(experience_pattern, experience_section)
-        print(modified_code)
+
+        project_pattern = (
+            "    \\resumeSubHeadingListStart\n"
+            "      \\resumeProjectHeading\n"
+            "          {\\textbf{PlaceHolderProjectTitle} $|$ \\emph{PlaceHolderProjectTool1}}{PlaceHolderProjectStartMonth PlaceHolderProjectStartYear -- PlaceHolderProjectEndMonth PlaceHolderProjectEndYear}\n"
+            "          \\resumeItemListStart\n"
+            "            \\resumeItem{PlaceHolderProjectItem1}\n"
+            "          \\resumeItemListEnd\n"
+            "    \\resumeSubHeadingListEnd"
+        )
+        project_section = generate_project_latex(template_data.project_entries)
+        print(project_section)
+        modified_code = modified_code.replace(project_pattern, project_section)
+
         # Ensure output directory exists
         os.makedirs(OUTPUT_FOLDER, exist_ok=True)
         

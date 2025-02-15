@@ -31,6 +31,21 @@ interface ExperienceEntry {
   items: ExperienceItem[];
 }
 
+interface ProjectItem {
+  description: string;
+}
+
+interface ProjectEntry {
+  title: string;
+  tools: string;
+  startMonth: string;
+  startYear: string;
+  endMonth: string;
+  endYear: string;
+  isPresent: boolean;
+  items: ExperienceItem[];
+}
+
 interface BasicInfo {
   name: string;
   contact: string;
@@ -81,6 +96,17 @@ const TemplateForm: React.FC = () => {
     items: [{ description: '' }]
   }]);
 
+  const [projectEntries, setProjectEntries] = useState<ProjectEntry[]>([{
+    title: '',
+    tools: '',
+    startMonth: '',
+    startYear: '',
+    endMonth: '',
+    endYear: '',
+    isPresent: false,
+    items: [{ description: '' }]
+  }]);
+
   const formatScore = (entry: EducationEntry) => {
     // Remove any special LaTeX characters from the score
     const sanitizedScore = entry.score.replace(/[\\{}]/g, '');
@@ -95,8 +121,6 @@ const TemplateForm: React.FC = () => {
       return `Percentage: ${scoreWithSymbol}`;
     }
   };
-
-  
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -163,7 +187,6 @@ const TemplateForm: React.FC = () => {
     }
   };
 
-
   const handleExperienceChange = (index: number, field: keyof Omit<ExperienceEntry, 'items'>, value: string | boolean) => {
     setExperienceEntries(prev => {
       const newEntries = [...prev];
@@ -221,6 +244,83 @@ const TemplateForm: React.FC = () => {
       });
     }
   };
+
+
+
+
+
+
+
+
+
+
+  
+  const handleProjectChange = (index: number, field: keyof Omit<ProjectEntry, 'items'>, value: string | boolean) => {
+    setProjectEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[index] = {
+        ...newEntries[index],
+        [field]: value,
+        ...(field === 'isPresent' && value === true ? { endMonth: 'Present', endYear: 'Present' } : {})
+      };
+      return newEntries;
+    });
+  };
+  
+  const handleProjectItemChange = (proIndex: number, itemIndex: number, value: string) => {
+    setProjectEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[proIndex].items[itemIndex] = { description: value };
+      return newEntries;
+    });
+  };
+  
+  const addProjectEntry = () => {
+    setProjectEntries(prev => [...prev, {
+      title: '',
+      tools: '',
+      startMonth: '',
+      startYear: '',
+      endMonth: '',
+      endYear: '',
+      isPresent: false,
+      items: [{ description: '' }]
+    }]);
+  };
+  
+  const removeProjectEntry = (index: number) => {
+    if (projectEntries.length > 1) {
+      setProjectEntries(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+  
+  const addProjectItem = (proIndex: number) => {
+    setProjectEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[proIndex].items.push({ description: '' });
+      return newEntries;
+    });
+  };
+  
+  const removeProjectItem = (proIndex: number, itemIndex: number) => {
+    if (projectEntries[proIndex].items.length > 1) {
+      setProjectEntries(prev => {
+        const newEntries = [...prev];
+        newEntries[proIndex].items = newEntries[proIndex].items.filter((_, i) => i !== itemIndex);
+        return newEntries;
+      });
+    }
+  };
+
+
+
+
+
+
+
+
+
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('Generating PDF...');
@@ -249,6 +349,7 @@ const TemplateForm: React.FC = () => {
           basic_info: basicInfoPayload,
           education_entries: transformedEducationEntries,
           experience_entries: experienceEntries,
+          project_entries:projectEntries,
           output_filename: basicInfo.outputFilename,
         }),
       });
@@ -613,6 +714,172 @@ const TemplateForm: React.FC = () => {
     </div>
   ))}
 </div>
+
+
+
+
+
+
+
+{/* Experience Section */}
+<div className="bg-gray-50 p-4 rounded-lg space-y-4">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-xl font-semibold">Project Details</h2>
+    <button
+      type="button"
+      onClick={addProjectEntry}
+      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+    >
+      Add Project
+    </button>
+  </div>
+
+  {projectEntries.map((entry, proIndex) => (
+    <div key={proIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
+      {projectEntries.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeProjectEntry(proIndex)}
+          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+        >
+          Remove
+        </button>
+      )}
+      
+      <h3 className="text-lg font-semibold mb-2">Project Entry {proIndex + 1}</h3>
+      
+      <div className="space-y-4">
+        {/* Basic Project Fields */}
+        {[
+          ['title', 'Project Title'],
+          ['tools', 'Project Tools']
+        ].map(([field, label]) => (
+          <div key={field}>
+            <label className="block text-sm font-medium mb-2">
+              {label}:
+              <input
+                type="text"
+                value={String(entry[field as keyof Omit<ProjectEntry, 'items'>])}
+                onChange={(e) => handleProjectChange(proIndex, field as keyof Omit<ProjectEntry, 'items'>, e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+        ))}
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Start Date Fields */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Start Month:
+              <input
+                type="text"
+                value={entry.startMonth}
+                onChange={(e) => handleProjectChange(proIndex, 'startMonth', e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Start Year:
+              <input
+                type="text"
+                value={entry.startYear}
+                onChange={(e) => handleProjectChange(proIndex, 'startYear', e.target.value)}
+                className="mt-1 block w-full p-2 border rounded-md"
+                required
+              />
+            </label>
+          </div>
+
+          {/* Present Toggle */}
+          <div className="col-span-2">
+            <label className="flex items-center space-x-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={entry.isPresent}
+                onChange={(e) => handleProjectChange(proIndex, 'isPresent', e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-500"
+              />
+              <span>Currently Working on this project</span>
+            </label>
+          </div>
+
+          {/* End Date Fields - Only show if not present */}
+          {!entry.isPresent && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  End Month:
+                  <input
+                    type="text"
+                    value={entry.endMonth}
+                    onChange={(e) => handleProjectChange(proIndex, 'endMonth', e.target.value)}
+                    className="mt-1 block w-full p-2 border rounded-md"
+                    required
+                  />
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  End Year:
+                  <input
+                    type="text"
+                    value={entry.endYear}
+                    onChange={(e) => handleProjectChange(proIndex, 'endYear', e.target.value)}
+                    className="mt-1 block w-full p-2 border rounded-md"
+                    required
+                  />
+                </label>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Experience Items/Bullet Points */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-md font-medium">Description Points</h4>
+            <button
+              type="button"
+              onClick={() => addProjectItem(proIndex)}
+              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Add Point
+            </button>
+          </div>
+          
+          {entry.items.map((item, itemIndex) => (
+            <div key={itemIndex} className="flex gap-2">
+              <input
+                type="text"
+                value={item.description}
+                onChange={(e) => handleProjectItemChange(proIndex, itemIndex, e.target.value)}
+                className="flex-1 p-2 border rounded-md"
+                placeholder="Enter description point"
+                required
+              />
+              {entry.items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeProjectItem(proIndex, itemIndex)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+
 
         {/* Output Filename */}
         <div>
