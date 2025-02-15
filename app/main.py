@@ -31,6 +31,7 @@ BASIC_PLACEHOLDERS = {
 EDUCATION_PLACEHOLDERS = {
     "PlaceHolderEducation": "\\parbox{8cm}{Education Institute}",
     "PlaceHolderCourse": "\\parbox{8cm}{Course Undertaken}",
+    "PlaceHolderScore": "\\parbox{8cm}{Percentage/GPA}",
     "PlaceHolderLocation1": "\\parbox{8cm}{Location of Institute}",
     "PlaceHolderStartMonth": "\\makebox[2cm][l]{Start Month}",
     "PlaceHolderStartYear": "\\makebox[2cm][l]{Start Year}",
@@ -57,6 +58,7 @@ class EducationEntry(BaseModel):
     startYear: str
     endMonth: str
     endYear: str
+    score:str
     isPresent: bool = False  # Added isPresent field with default value False
 
 class ExperienceItem(BaseModel):
@@ -125,7 +127,8 @@ def generate_education_latex(entries: List[EducationEntry]) -> str:
             f"      {{{entry.education}}}\n"
             f"      {{{entry.location}}}\n"
             f"      {{{entry.course}}}\n"
-            f"      {{{date_range}}}"
+            f"      {{{date_range}}}\n"
+            f"      {{{entry.score}}}"
         )
         latex_entries.append(latex_entry)
     
@@ -180,6 +183,7 @@ async def generate_pdf(template_data: TemplateData):
             "      {PlaceHolderLocation1}\n"
             "      {PlaceHolderCourse}\n"
             "      {PlaceHolderStartMonth PlaceHolderStartYear -- PlaceHolderEndMonth PlaceHolderEndYear}\n"
+            "      {PlaceHolderScore}\n"
             "\\resumeSubHeadingListEnd"
         )
         education_section = generate_education_latex(template_data.education_entries)

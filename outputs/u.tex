@@ -68,12 +68,21 @@
   }
 }
 
+\newcommand{\resumeEducation}[5]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#4} \\
+      \textit{\small#3} & \textit{#2} \\
+      \textit{#5} & \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+% Experience section command
 \newcommand{\resumeSubheading}[4]{
   \vspace{-2pt}\item
     \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
-      \textbf{#1} & \\
-      \textbf{#2} & \textit{#4} \\
-      \textit{\small#3} &  \\
+      \textbf{#1} & \textbf{#2} \\
+      \textit{\small#3} & \textit{#4} \\
     \end{tabular*}\vspace{-7pt}
 }
 
@@ -114,18 +123,19 @@
 
 \begin{center}
     \textbf{\Huge \scshape a} \\ \vspace{1pt}
-    \small b $|$ \href{mailto:x@x.com}{\underline{lakshya1hariramani@gmail.com}} $|$ 
+    \small b $|$ \href{mailto:x@x.com}{\underline{c@gmail.com}} $|$ 
     \href{}{\underline{https://www.linkedin.com/in/lokesh-hariramani-13aa3126a/}} $|$
     \href{}{\underline{https://github.com/l1akshya}}
 \end{center}
 
 \section{Education}
 \resumeSubHeadingListStart
-    \resumeSubheading
-      {ab}
-      {c}
-      {b}
-      {d e -- Present}
+    \resumeEducation
+      {e}
+      {g}
+      {f}
+      {i j -- k l}
+      {h}
 \resumeSubHeadingListEnd
 
 
@@ -134,10 +144,10 @@
 \section{Experience}
 \resumeSubHeadingListStart
     \resumeSubheading
-      {b}{d i -- Present}
-      {a}{n}
+      {m}{p q -- r s}
+      {n}{o}
       \resumeItemListStart
-        \resumeItem{n}
+        \resumeItem{t}
       \resumeItemListEnd
 \resumeSubHeadingListEnd
 
