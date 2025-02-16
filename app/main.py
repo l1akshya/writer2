@@ -61,6 +61,11 @@ PROJECT_PLACEHOLDERS = {
     "PlaceHolderProjectItem1": "Project Description"
 }
 
+SKILLS_PLACEHOLDERS = {
+    "PlaceHolderSkillType1": "Skill Category",
+    "PlaceHolderSkillItem1": "Skills List"
+}
+
 class EducationEntry(BaseModel):
     education: str
     course: str
@@ -100,12 +105,20 @@ class ProjectEntry(BaseModel):
     isPresent: bool = False
     items: List[ProjectItem]
 
+class SkillItem(BaseModel):
+    name: str
+
+class SkillType(BaseModel):
+    category: str
+    items: List[SkillItem]
+
 class TemplateData(BaseModel):
     template_name: str
     basic_info: Dict[str, str]
     education_entries: List[EducationEntry]
     experience_entries: List[ExperienceEntry]
-    project_entries:List[ProjectEntry]
+    project_entries: List[ProjectEntry]
+    skill_entries: List[SkillType]  # Add this line
     output_filename: str
 
 @app.get("/")
@@ -133,7 +146,8 @@ async def get_placeholders():
         "basic_info": BASIC_PLACEHOLDERS,
         "education": EDUCATION_PLACEHOLDERS,
         "experience": EXPERIENCE_PLACEHOLDERS,
-        "project": PROJECT_PLACEHOLDERS
+        "project": PROJECT_PLACEHOLDERS,
+        "skill":SKILLS_PLACEHOLDERS
     }
 
 def generate_education_latex(entries: List[EducationEntry]) -> str:
@@ -206,6 +220,18 @@ def generate_project_latex(entries: List[ProjectEntry]) -> str:
     
     return "    \\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n    \\resumeSubHeadingListEnd"
 
+def generate_skills_latex(entries: List[SkillType]) -> str:
+    """Generates LaTeX code for skills section."""
+    skill_lines = []
+    
+    for entry in entries:
+        # Join skill items with commas
+        skills_str = ", ".join(item.name for item in entry.items)
+        skill_line = f"    \\small{{\\item{{\n     \\textbf{{{entry.category}}}{{: {skills_str}}} \n    }}}}"
+        skill_lines.append(skill_line)
+    
+    return " \\begin{itemize}[leftmargin=0.15in, label={}]\n" + "\n".join(skill_lines) + "\n \\end{itemize}"
+
 @app.post("/generate-pdf")
 async def generate_pdf(template_data: TemplateData):
     """Generates a PDF from a template with provided data."""
@@ -264,6 +290,16 @@ async def generate_pdf(template_data: TemplateData):
         project_section = generate_project_latex(template_data.project_entries)
         print(project_section)
         modified_code = modified_code.replace(project_pattern, project_section)
+
+        skills_pattern = (
+            "\\begin{itemize}[leftmargin=0.15in, label={}]\n"
+            "    \\small{\\item{\n"
+            "     \\textbf{PlaceHolderSkillType1}{: PlaceHolderSkillItem1} \n"
+            "    }}\n"
+            " \\end{itemize}"
+        )
+        skills_section = generate_skills_latex(template_data.skill_entries)
+        modified_code = modified_code.replace(skills_pattern, skills_section)
 
         # Ensure output directory exists
         os.makedirs(OUTPUT_FOLDER, exist_ok=True)

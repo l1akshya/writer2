@@ -43,7 +43,16 @@ interface ProjectEntry {
   endMonth: string;
   endYear: string;
   isPresent: boolean;
-  items: ExperienceItem[];
+  items: ProjectItem[];
+}
+
+interface SkillItem {
+  name: string;
+}
+
+interface SkillType {
+  category: string;
+  items: SkillItem[];
 }
 
 interface BasicInfo {
@@ -105,6 +114,11 @@ const TemplateForm: React.FC = () => {
     endYear: '',
     isPresent: false,
     items: [{ description: '' }]
+  }]);
+
+  const [skillEntries, setSkillEntries] = useState<SkillType[]>([{
+    category: '',
+    items: [{ name: '' }]
   }]);
 
   const formatScore = (entry: EducationEntry) => {
@@ -245,16 +259,6 @@ const TemplateForm: React.FC = () => {
     }
   };
 
-
-
-
-
-
-
-
-
-
-  
   const handleProjectChange = (index: number, field: keyof Omit<ProjectEntry, 'items'>, value: string | boolean) => {
     setProjectEntries(prev => {
       const newEntries = [...prev];
@@ -312,14 +316,55 @@ const TemplateForm: React.FC = () => {
     }
   };
 
-
-
-
-
-
-
-
-
+  const handleSkillTypeChange = (index: number, value: string) => {
+    setSkillEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[index] = {
+        ...newEntries[index],
+        category: value
+      };
+      return newEntries;
+    });
+  };
+  
+  const handleSkillItemChange = (typeIndex: number, itemIndex: number, value: string) => {
+    setSkillEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[typeIndex].items[itemIndex] = { name: value };
+      return newEntries;
+    });
+  };
+  
+  const addSkillType = () => {
+    setSkillEntries(prev => [...prev, {
+      category: '',
+      items: [{ name: '' }]
+    }]);
+  };
+  
+  const removeSkillType = (index: number) => {
+    if (skillEntries.length > 1) {
+      setSkillEntries(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+  
+  const addSkillItem = (typeIndex: number) => {
+    setSkillEntries(prev => {
+      const newEntries = [...prev];
+      newEntries[typeIndex].items.push({ name: '' });
+      return newEntries;
+    });
+  };
+  
+  const removeSkillItem = (typeIndex: number, itemIndex: number) => {
+    if (skillEntries[typeIndex].items.length > 1) {
+      setSkillEntries(prev => {
+        const newEntries = [...prev];
+        newEntries[typeIndex].items = newEntries[typeIndex].items.filter((_, i) => i !== itemIndex);
+        return newEntries;
+      });
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -349,7 +394,8 @@ const TemplateForm: React.FC = () => {
           basic_info: basicInfoPayload,
           education_entries: transformedEducationEntries,
           experience_entries: experienceEntries,
-          project_entries:projectEntries,
+          project_entries: projectEntries,
+          skill_entries: skillEntries,  // Add this line
           output_filename: basicInfo.outputFilename,
         }),
       });
@@ -860,6 +906,85 @@ const TemplateForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => removeProjectItem(proIndex, itemIndex)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+{/* Skills Section */}
+<div className="bg-gray-50 p-4 rounded-lg space-y-4">
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-xl font-semibold">Technical Skills</h2>
+    <button
+      type="button"
+      onClick={addSkillType}
+      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+    >
+      Add Skill Category
+    </button>
+  </div>
+
+  {skillEntries.map((skillType, typeIndex) => (
+    <div key={typeIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
+      {skillEntries.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeSkillType(typeIndex)}
+          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+        >
+          Remove
+        </button>
+      )}
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Skill Category:
+            <input
+              type="text"
+              value={skillType.category}
+              onChange={(e) => handleSkillTypeChange(typeIndex, e.target.value)}
+              className="mt-1 block w-full p-2 border rounded-md"
+              placeholder="e.g., Programming Languages, Frameworks, Tools"
+              required
+            />
+          </label>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-md font-medium">Skills</h4>
+            <button
+              type="button"
+              onClick={() => addSkillItem(typeIndex)}
+              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Add Skill
+            </button>
+          </div>
+
+          {skillType.items.map((item, itemIndex) => (
+            <div key={itemIndex} className="flex gap-2">
+              <input
+                type="text"
+                value={item.name}
+                onChange={(e) => handleSkillItemChange(typeIndex, itemIndex, e.target.value)}
+                className="flex-1 p-2 border rounded-md"
+                placeholder="Enter skill"
+                required
+              />
+              {skillType.items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSkillItem(typeIndex, itemIndex)}
                   className="text-red-500 hover:text-red-700"
                 >
                   Remove
