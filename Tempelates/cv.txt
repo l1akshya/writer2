@@ -1,0 +1,41 @@
+% Professional Cover Letter Template
+\documentclass[11pt]{letter}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{charter}
+
+% Personal Information
+\newcommand{\myname}{PlaceHolderName}
+\newcommand{\myaddress}{PlaceHolderAddress}
+\newcommand{\mycity}{PlaceHolderCityStateZip}
+\newcommand{\myphone}{PlaceHolderPhone}
+\newcommand{\myemail}{PlaceHolderEmail}
+
+% Company Information
+\newcommand{\recipient}{PlaceHolderHiringManagerName}
+\newcommand{\company}{PlaceHolderCompanyName}
+\newcommand{\companyaddress}{PlaceHolderCompanyAddress}
+\newcommand{\companycity}{PlaceHolderCompanyCityStateZip}
+
+% Letter Details
+\newcommand{\position}{PlaceHolderPositionTitle}
+\newcommand{\letterdate}{PlaceHolderDate}
+
+\signature{\myname}
+\address{\myname \\ \myaddress \\ \mycity \\ \myphone \\ \myemail}
+
+\begin{document}
+
+\begin{letter}{\recipient \\ \company \\ \companyaddress \\ \companycity}
+\date{\letterdate}
+
+\opening{Dear \recipient,}
+
+PlaceHolderBody
+
+\closing{Sincerely,}
+
+\end{letter}
+
+\end{document}
