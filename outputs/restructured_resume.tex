@@ -1,0 +1,191 @@
+%-------------------------
+% Resume in Latex
+% Author : Lokesh Hariramani (Modified Structure)
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section styling
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{\item\small{{#1 \vspace{-2pt}}}}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#2} \\
+      \textit{\small#3} & \textit{#4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeEducation}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#3} \\
+      \textit{\small#2} & \textit{#4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{#2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Lokesh Hariramani} \\ \vspace{1pt}
+    \small 9111200036 $|$ 
+    \href{mailto:lakshya1hariramani@gmail.com}{\underline{lakshya1hariramani@gmail.com}} $|$ 
+    \href{https://www.linkedin.com/in/lokesh-hariramani-13aa3126a/}{\underline{LinkedIn}} $|$
+    \href{https://github.com/l1akshya}{\underline{GitHub}}
+\end{center}
+
+%-----------CAREER OBJECTIVE-----------
+\section{Career Objective}
+\small{
+A passionate and detail-oriented developer seeking to apply my skills in \textbf{web development} and \textbf{frontend engineering}. 
+I aim to create interactive, efficient, and scalable digital experiences using modern frameworks and tools while continuing to learn and innovate in user-centric design and technology.
+}
+
+%-----------Technical SKILLS-----------
+\section{Technical Skills}
+\small{
+\textbf{Programming Languages:} C, Python, JavaScript, TypeScript, HTML, CSS, Matlab, PHP, LaTeX, Qt
+
+\vspace{3pt}
+\textbf{Frameworks:} FastAPI, Flask, React, Next.js, Angular, CodeIgniter
+
+\vspace{3pt}
+\textbf{Libraries:} Pandas, TensorFlow, Keras, Pygame, Tkinter, Librosa, HTML Canvas, JsPDF, PrimeNG
+
+\vspace{3pt}
+\textbf{Design Tools:} Adobe Illustrator, Adobe Photoshop, Canva, QML
+
+\vspace{3pt}
+\textbf{Version Control \& Databases:} Git, GitHub, PHPMyAdmin, MySQL
+}
+
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Web Development Intern}{June 2025 -- July 2025}
+    {Mediklik (Vensi)}{Naya Raipur, Chhattisgarh}
+    \resumeItemListStart
+      \resumeItem{Built admin interface using TypeScript, Angular, and React for material logging and categorization.}
+      \resumeItem{Used PHP and CodeIgniter to handle documentation, quality checks, and material processing.}
+      \resumeItem{Managed data using PHPMyAdmin for smooth material tracking and organization.}
+    \resumeItemListEnd
+
+  \resumeSubheading
+    {Auto and Control Intern}{June 2024 -- August 2024}
+    {Armament Research and Development Establishment}{Control System Design}
+    \resumeItemListStart
+      \resumeItem{Designed control systems and developed Python-based motor control algorithms.}
+      \resumeItem{Simulated PMSM motor control using FOC algorithm for sensorless feedback systems.}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+\resumeSubHeadingListStart
+  \resumeProjectHeading{\textbf{LaTeX Document Writer} $|$ \emph{Python, FastAPI, TypeScript, Next.js, LaTeX}}{Feb 2025 -- Present}
+  \resumeItemListStart
+    \resumeItem{Developed a full-stack document generation platform integrating FastAPI backend with Next.js frontend.}
+    \resumeItem{Implements multiple LaTeX templates for resumes, includes a dedicated CV template, and a report-writing template currently in progress.}
+    \resumeItem{Automates LaTeX compilation and dynamic text replacement from user inputs for real-time PDF generation.}
+    \resumeItem{\href{https://github.com/l1akshya/writer2}{GitHub: writer2}}
+  \resumeItemListEnd
+
+
+
+
+  \resumeProjectHeading{\textbf{Task Manager (Retro Gaming Theme)} $|$ \emph{TypeScript, HTML, CSS, React}}{Jan 2025 -- Feb 2025}
+  \resumeItemListStart
+    \resumeItem{Developed a dynamic task management web app with a nostalgic retro gaming interface.}
+    \resumeItem{Implemented features like timeline tracking, progress reports, and task categorization with full CRUD (add, edit, delete) functionality.}
+    \resumeItem{Built using TypeScript, React, HTML, and CSS for modular design and responsive performance.}
+    \resumeItem{\href{https://github.com/l1akshya/internship}{GitHub: internship}, \href{https://internship-weld-tau.vercel.app/}{Live Demo}}
+  \resumeItemListEnd
+
+
+  \resumeProjectHeading{\textbf{Medical Image Segmentation} $|$ \emph{Python, TensorFlow, Matplotlib}}{Oct 2024 -- Dec 2024}
+  \resumeItemListStart
+    \resumeItem{Implemented Trans-UNet architecture with custom weighted loss for improved IoU accuracy.}
+    \resumeItem{Used Kvasir-Seg dataset to train and validate segmentation performance.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+\resumeSubHeadingListStart
+  \resumeEducation
+    {International Institute of Information Technology, Naya Raipur}
+    {Bachelor of Technology in Electronics and Communication Engineering}
+    {Nov 2022 -- Present}
+    {CGPA: 8.41}
+
+  \resumeEducation
+    {Class 12 (Dronacharya, Raipur, Chhattisgarh)}
+    {Percentage: 90\%}
+    {Apr 2020 -- Mar 2022}
+    {}
+
+  \resumeEducation
+    {Class 10 (Bhartiya Vidya Bhavans, Raipur, Chhattisgarh)}
+    {Percentage: 96\%}
+    {Apr 2013 -- Mar 2020}
+    {}
+\resumeSubHeadingListEnd
+
+\end{document}

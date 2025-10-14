@@ -2,144 +2,40 @@
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 
-interface EducationEntry {
-  education: string;
-  course: string;
-  location: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  score: string;
-  isPresent: boolean;
-  scoreType: 'cgpa' | 'percentage';
-}
-
-interface ExperienceItem {
-  description: string;
-}
-
-interface ExperienceEntry {
-  position: string;
-  company: string;
-  location: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  isPresent: boolean;
-  items: ExperienceItem[];
-}
-
-interface ProjectItem {
-  description: string;
-}
-
-interface ProjectEntry {
-  title: string;
-  tools: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  isPresent: boolean;
-  items: ProjectItem[];
-}
-
-interface SkillItem {
+interface AuthorInfo {
   name: string;
-}
-
-interface SkillType {
-  category: string;
-  items: SkillItem[];
-}
-
-interface BasicInfo {
-  name: string;
-  contact: string;
+  department: string;
+  organization: string;
+  city: string;
+  country: string;
   email: string;
-  linkedin: string;
-  github: string;
-  outputFilename: string;
 }
 
 interface Templates {
   [key: number]: string;
 }
 
-const TemplateForm: React.FC = () => {
+const ReportTemplateForm: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
   const [templates, setTemplates] = useState<Templates>({});
   const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([{
-    education: '',
-    course: '',
-    location: '',
-    startMonth: '',
-    startYear: '',
-    endMonth: '',
-    endYear: '',
-    score: '',
-    isPresent: false,
-    scoreType: 'percentage'
-  }]);
-  const [basicInfo, setBasicInfo] = useState<BasicInfo>({
+  const [title, setTitle] = useState('');
+  const [outputFilename, setOutputFilename] = useState('');
+  const [authors, setAuthors] = useState<AuthorInfo[]>([{
     name: '',
-    contact: '',
-    email: '',
-    linkedin: '',
-    github: '',
-    outputFilename: ''
-  });
+    department: '',
+    organization: '',
+    city: '',
+    country: '',
+    email: ''
+  }]);
   const [status, setStatus] = useState('');
 
-  const [experienceEntries, setExperienceEntries] = useState<ExperienceEntry[]>([{
-    position: '',
-    company: '',
-    location: '',
-    startMonth: '',
-    startYear: '',
-    endMonth: '',
-    endYear: '',
-    isPresent: false,
-    items: [{ description: '' }]
-  }]);
-
-  const [projectEntries, setProjectEntries] = useState<ProjectEntry[]>([{
-    title: '',
-    tools: '',
-    startMonth: '',
-    startYear: '',
-    endMonth: '',
-    endYear: '',
-    isPresent: false,
-    items: [{ description: '' }]
-  }]);
-
-  const [skillEntries, setSkillEntries] = useState<SkillType[]>([{
-    category: '',
-    items: [{ name: '' }]
-  }]);
-
-  const formatScore = (entry: EducationEntry) => {
-    // Remove any special LaTeX characters from the score
-    const sanitizedScore = entry.score.replace(/[\\{}]/g, '');
-    
-    if (entry.scoreType === 'cgpa') {
-      return `CGPA: ${sanitizedScore}`;
-    } else {
-      // Ensure the percentage has the % symbol
-      const scoreWithSymbol = sanitizedScore.includes('%') 
-        ? sanitizedScore 
-        : `${sanitizedScore}\\%`;
-      return `Percentage: ${scoreWithSymbol}`;
-    }
-  };
-
   useEffect(() => {
+    setMounted(true);
     const fetchTemplates = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/templates');
+        const response = await fetch('http://127.0.0.1:8002/report-templates');
         const data = await response.json();
         setTemplates(data);
       } catch (error) {
@@ -149,892 +45,323 @@ const TemplateForm: React.FC = () => {
     fetchTemplates();
   }, []);
 
-  const handleBasicInfoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setBasicInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleEducationChange = (index: number, field: keyof EducationEntry, value: string | boolean) => {
-    setEducationEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[index] = {
-        ...newEntries[index],
-        [field]: value,
-        ...(field === 'isPresent' && value === true ? { endMonth: 'Present', endYear: 'Present' } : {})
+  const handleAuthorChange = (index: number, field: keyof AuthorInfo, value: string) => {
+    setAuthors(prev => {
+      const newAuthors = [...prev];
+      newAuthors[index] = {
+        ...newAuthors[index],
+        [field]: value
       };
-      return newEntries;
+      return newAuthors;
     });
   };
 
-  const toggleScoreType = (index: number) => {
-    setEducationEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[index] = {
-        ...newEntries[index],
-        scoreType: newEntries[index].scoreType === 'cgpa' ? 'percentage' : 'cgpa'
-      };
-      return newEntries;
-    });
-  };
-
-  const addEducationEntry = () => {
-    setEducationEntries(prev => [...prev, {
-      education: '',
-      course: '',
-      location: '',
-      startMonth: '',
-      startYear: '',
-      endMonth: '',
-      endYear: '',
-      score: '',
-      isPresent: false,
-      scoreType: 'percentage'
-    }]);
-  };
-
-  const removeEducationEntry = (index: number) => {
-    if (educationEntries.length > 1) {
-      setEducationEntries(prev => prev.filter((_, i) => i !== index));
+  const addAuthor = () => {
+    if (authors.length < 6) {
+      setAuthors(prev => [...prev, {
+        name: '',
+        department: '',
+        organization: '',
+        city: '',
+        country: '',
+        email: ''
+      }]);
+    } else {
+      setStatus('Maximum 6 authors allowed');
+      setTimeout(() => setStatus(''), 3000);
     }
   };
 
-  const handleExperienceChange = (index: number, field: keyof Omit<ExperienceEntry, 'items'>, value: string | boolean) => {
-    setExperienceEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[index] = {
-        ...newEntries[index],
-        [field]: value,
-        ...(field === 'isPresent' && value === true ? { endMonth: 'Present', endYear: 'Present' } : {})
-      };
-      return newEntries;
-    });
-  };
-  
-  const handleExperienceItemChange = (expIndex: number, itemIndex: number, value: string) => {
-    setExperienceEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[expIndex].items[itemIndex] = { description: value };
-      return newEntries;
-    });
-  };
-  
-  const addExperienceEntry = () => {
-    setExperienceEntries(prev => [...prev, {
-      position: '',
-      company: '',
-      location: '',
-      startMonth: '',
-      startYear: '',
-      endMonth: '',
-      endYear: '',
-      isPresent: false,
-      items: [{ description: '' }]
-    }]);
-  };
-  
-  const removeExperienceEntry = (index: number) => {
-    if (experienceEntries.length > 1) {
-      setExperienceEntries(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-  
-  const addExperienceItem = (expIndex: number) => {
-    setExperienceEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[expIndex].items.push({ description: '' });
-      return newEntries;
-    });
-  };
-  
-  const removeExperienceItem = (expIndex: number, itemIndex: number) => {
-    if (experienceEntries[expIndex].items.length > 1) {
-      setExperienceEntries(prev => {
-        const newEntries = [...prev];
-        newEntries[expIndex].items = newEntries[expIndex].items.filter((_, i) => i !== itemIndex);
-        return newEntries;
-      });
-    }
-  };
-
-  const handleProjectChange = (index: number, field: keyof Omit<ProjectEntry, 'items'>, value: string | boolean) => {
-    setProjectEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[index] = {
-        ...newEntries[index],
-        [field]: value,
-        ...(field === 'isPresent' && value === true ? { endMonth: 'Present', endYear: 'Present' } : {})
-      };
-      return newEntries;
-    });
-  };
-  
-  const handleProjectItemChange = (proIndex: number, itemIndex: number, value: string) => {
-    setProjectEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[proIndex].items[itemIndex] = { description: value };
-      return newEntries;
-    });
-  };
-  
-  const addProjectEntry = () => {
-    setProjectEntries(prev => [...prev, {
-      title: '',
-      tools: '',
-      startMonth: '',
-      startYear: '',
-      endMonth: '',
-      endYear: '',
-      isPresent: false,
-      items: [{ description: '' }]
-    }]);
-  };
-  
-  const removeProjectEntry = (index: number) => {
-    if (projectEntries.length > 1) {
-      setProjectEntries(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-  
-  const addProjectItem = (proIndex: number) => {
-    setProjectEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[proIndex].items.push({ description: '' });
-      return newEntries;
-    });
-  };
-  
-  const removeProjectItem = (proIndex: number, itemIndex: number) => {
-    if (projectEntries[proIndex].items.length > 1) {
-      setProjectEntries(prev => {
-        const newEntries = [...prev];
-        newEntries[proIndex].items = newEntries[proIndex].items.filter((_, i) => i !== itemIndex);
-        return newEntries;
-      });
-    }
-  };
-
-  const handleSkillTypeChange = (index: number, value: string) => {
-    setSkillEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[index] = {
-        ...newEntries[index],
-        category: value
-      };
-      return newEntries;
-    });
-  };
-  
-  const handleSkillItemChange = (typeIndex: number, itemIndex: number, value: string) => {
-    setSkillEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[typeIndex].items[itemIndex] = { name: value };
-      return newEntries;
-    });
-  };
-  
-  const addSkillType = () => {
-    setSkillEntries(prev => [...prev, {
-      category: '',
-      items: [{ name: '' }]
-    }]);
-  };
-  
-  const removeSkillType = (index: number) => {
-    if (skillEntries.length > 1) {
-      setSkillEntries(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-  
-  const addSkillItem = (typeIndex: number) => {
-    setSkillEntries(prev => {
-      const newEntries = [...prev];
-      newEntries[typeIndex].items.push({ name: '' });
-      return newEntries;
-    });
-  };
-  
-  const removeSkillItem = (typeIndex: number, itemIndex: number) => {
-    if (skillEntries[typeIndex].items.length > 1) {
-      setSkillEntries(prev => {
-        const newEntries = [...prev];
-        newEntries[typeIndex].items = newEntries[typeIndex].items.filter((_, i) => i !== itemIndex);
-        return newEntries;
-      });
+  const removeAuthor = (index: number) => {
+    if (authors.length > 1) {
+      setAuthors(prev => prev.filter((_, i) => i !== index));
     }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('Generating PDF...');
-  
-    const basicInfoPayload = {
-      'Place_Holder_Name': basicInfo.name,
-      'Place_Holder_contact': basicInfo.contact,
-      'Place_Holder_Mail': basicInfo.email,
-      'Place_Holder_linkedin': basicInfo.linkedin,
-      'Place_Holder_github': basicInfo.github,
-    };
+    setStatus('Generating Report PDF...');
 
-    const transformedEducationEntries = educationEntries.map(entry => ({
-      ...entry,
-      score: formatScore(entry)
-    }));
-  
     try {
-      const response = await fetch('http://127.0.0.1:8000/generate-pdf', {
+      const response = await fetch('http://127.0.0.1:8002/generate-report-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           template_name: selectedTemplate,
-          basic_info: basicInfoPayload,
-          education_entries: transformedEducationEntries,
-          experience_entries: experienceEntries,
-          project_entries: projectEntries,
-          skill_entries: skillEntries,  // Add this line
-          output_filename: basicInfo.outputFilename,
+          title: title,
+          authors: authors,
+          output_filename: outputFilename,
         }),
       });
-  
+
       const data = await response.json();
-      setStatus(response.ok ? 'PDF generated successfully!' : `Error: ${data.detail}`);
+      setStatus(response.ok ? 'Report PDF generated successfully!' : `Error: ${data.detail}`);
     } catch (error) {
       setStatus('Error generating PDF');
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Resume Generator</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Template Selection */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">
-            Select Template:
-            <select 
-              value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value)}
-              className="mt-1 block w-full p-2 border rounded-md"
-              required
-            >
-              <option value="">Choose a template</option>
-              {Object.entries(templates).map(([id, name]) => (
-                <option key={id} value={name}>{name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null;
+  }
 
-        {/* Basic Information */}
-        <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
-          
-          {Object.entries({
-            name: 'Full Name',
-            contact: 'Contact Number',
-            email: 'Email Address',
-            linkedin: 'LinkedIn Profile',
-            github: 'GitHub Profile'
-          }).map(([field, label]) => (
-            <div key={field}>
-              <label className="block text-sm font-medium mb-2">
-                {label}:
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">IEEE Report Generator</h1>
+          <p className="text-gray-600">Create professional IEEE conference papers with ease</p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Template Selection */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Select Template: *
+              <select 
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+                className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="">Choose a template</option>
+                {Object.entries(templates).map(([id, name]) => (
+                  <option key={id} value={name}>{name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* Report Title */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Report Information</h2>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                Report Title: *
                 <input
-                  type={field === 'email' ? 'email' : field.includes('url') ? 'url' : 'text'}
-                  name={field}
-                  value={basicInfo[field as keyof BasicInfo]}
-                  onChange={handleBasicInfoChange}
-                  className="mt-1 block w-full p-2 border rounded-md"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your report title"
                   required
                 />
               </label>
             </div>
-          ))}
-        </div>
-
-       {/* Education Entries */}
-<div className="bg-gray-50 p-4 rounded-lg space-y-4">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl font-semibold">Education Details</h2>
-    <button
-      type="button"
-      onClick={addEducationEntry}
-      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
-    >
-      Add Education
-    </button>
-  </div>
-
-  {educationEntries.map((entry, index) => (
-    <div key={index} className="bg-white p-4 rounded-lg space-y-4 relative">
-      {educationEntries.length > 1 && (
-        <button
-          type="button"
-          onClick={() => removeEducationEntry(index)}
-          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-        >
-          Remove
-        </button>
-      )}
-      
-      <h3 className="text-lg font-semibold mb-2">Education Entry {index + 1}</h3>
-      
-      <div className="space-y-4">
-        {[
-          ['education', 'Educational Institute'],
-          ['course', 'Course'],
-          ['location', 'Institute Location'],
-        ].map(([field, label]) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-2">
-              {label}:
-              <input
-                type="text"
-                value={String(entry[field as keyof EducationEntry])}
-                onChange={(e) => handleEducationChange(index, field as keyof EducationEntry, e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-        ))}
-
-        {/* Score input with toggle */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="block text-sm font-medium">
-              {entry.scoreType === 'cgpa' ? 'CGPA' : 'Percentage'}:
-            </label>
-            <button
-              type="button"
-              onClick={() => toggleScoreType(index)}
-              className="text-sm bg-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Switch to {entry.scoreType === 'cgpa' ? 'Percentage' : 'CGPA'}
-            </button>
-          </div>
-          <input
-            type="text"
-            value={entry.score}
-            onChange={(e) => handleEducationChange(index, 'score', e.target.value)}
-            className="block w-full p-2 border rounded-md"
-            placeholder={`Enter ${entry.scoreType === 'cgpa' ? 'CGPA' : 'Percentage'}`}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* Start Date Fields */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Month:
-              <input
-                type="text"
-                value={entry.startMonth}
-                onChange={(e) => handleEducationChange(index, 'startMonth', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Year:
-              <input
-                type="text"
-                value={entry.startYear}
-                onChange={(e) => handleEducationChange(index, 'startYear', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
           </div>
 
-          {/* Present Toggle */}
-          <div className="col-span-2">
-            <label className="flex items-center space-x-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={entry.isPresent}
-                onChange={(e) => handleEducationChange(index, 'isPresent', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500"
-              />
-              <span>Currently Studying Here</span>
-            </label>
-          </div>
-
-          {/* End Date Fields - Only show if not present */}
-          {!entry.isPresent && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Month:
-                  <input
-                    type="text"
-                    value={entry.endMonth}
-                    onChange={(e) => handleEducationChange(index, 'endMonth', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Year:
-                  <input
-                    type="text"
-                    value={entry.endYear}
-                    onChange={(e) => handleEducationChange(index, 'endYear', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
-{/* Experience Section */}
-<div className="bg-gray-50 p-4 rounded-lg space-y-4">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl font-semibold">Experience Details</h2>
-    <button
-      type="button"
-      onClick={addExperienceEntry}
-      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
-    >
-      Add Experience
-    </button>
-  </div>
-
-  {experienceEntries.map((entry, expIndex) => (
-    <div key={expIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
-      {experienceEntries.length > 1 && (
-        <button
-          type="button"
-          onClick={() => removeExperienceEntry(expIndex)}
-          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-        >
-          Remove
-        </button>
-      )}
-      
-      <h3 className="text-lg font-semibold mb-2">Experience Entry {expIndex + 1}</h3>
-      
-      <div className="space-y-4">
-        {/* Basic Experience Fields */}
-        {[
-          ['position', 'Position Title'],
-          ['company', 'Company Name'],
-          ['location', 'Location']
-        ].map(([field, label]) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-2">
-              {label}:
-              <input
-                type="text"
-                value={String(entry[field as keyof Omit<ExperienceEntry, 'items'>])}
-                onChange={(e) => handleExperienceChange(expIndex, field as keyof Omit<ExperienceEntry, 'items'>, e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-        ))}
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* Start Date Fields */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Month:
-              <input
-                type="text"
-                value={entry.startMonth}
-                onChange={(e) => handleExperienceChange(expIndex, 'startMonth', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Year:
-              <input
-                type="text"
-                value={entry.startYear}
-                onChange={(e) => handleExperienceChange(expIndex, 'startYear', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-
-          {/* Present Toggle */}
-          <div className="col-span-2">
-            <label className="flex items-center space-x-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={entry.isPresent}
-                onChange={(e) => handleExperienceChange(expIndex, 'isPresent', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500"
-              />
-              <span>Currently Working Here</span>
-            </label>
-          </div>
-
-          {/* End Date Fields - Only show if not present */}
-          {!entry.isPresent && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Month:
-                  <input
-                    type="text"
-                    value={entry.endMonth}
-                    onChange={(e) => handleExperienceChange(expIndex, 'endMonth', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Year:
-                  <input
-                    type="text"
-                    value={entry.endYear}
-                    onChange={(e) => handleExperienceChange(expIndex, 'endYear', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Experience Items/Bullet Points */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-md font-medium">Description Points</h4>
-            <button
-              type="button"
-              onClick={() => addExperienceItem(expIndex)}
-              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Add Point
-            </button>
-          </div>
-          
-          {entry.items.map((item, itemIndex) => (
-            <div key={itemIndex} className="flex gap-2">
-              <input
-                type="text"
-                value={item.description}
-                onChange={(e) => handleExperienceItemChange(expIndex, itemIndex, e.target.value)}
-                className="flex-1 p-2 border rounded-md"
-                placeholder="Enter description point"
-                required
-              />
-              {entry.items.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeExperienceItem(expIndex, itemIndex)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Remove
-                </button>
-              )}
+          {/* Authors Section */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Author Information</h2>
+              <button
+                type="button"
+                onClick={addAuthor}
+                disabled={authors.length >= 6}
+                className={`px-4 py-2 rounded-md transition-colors font-medium ${
+                  authors.length >= 6 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg'
+                }`}
+              >
+                Add Author ({authors.length}/6)
+              </button>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
 
-{/* Project Section */}
-<div className="bg-gray-50 p-4 rounded-lg space-y-4">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl font-semibold">Project Details</h2>
-    <button
-      type="button"
-      onClick={addProjectEntry}
-      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
-    >
-      Add Project
-    </button>
-  </div>
+            {authors.map((author, index) => (
+              <div key={index} className="bg-white p-5 rounded-lg space-y-4 relative border-2 border-gray-300 shadow-sm">
+                {authors.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeAuthor(index)}
+                    className="absolute top-3 right-3 text-red-500 hover:text-red-700 font-semibold text-sm bg-red-50 px-3 py-1 rounded-md hover:bg-red-100 transition-colors"
+                  >
+                    ✕ Remove
+                  </button>
+                )}
+                
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                    {index + 1}
+                  </span>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Author {index + 1} {index === 0 && <span className="text-blue-600 text-sm">(Primary)</span>}
+                  </h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Author Name */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Full Name: *
+                      <input
+                        type="text"
+                        value={author.name}
+                        onChange={(e) => handleAuthorChange(index, 'name', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., John Doe"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
 
-  {projectEntries.map((entry, proIndex) => (
-    <div key={proIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
-      {projectEntries.length > 1 && (
-        <button
-          type="button"
-          onClick={() => removeProjectEntry(proIndex)}
-          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-        >
-          Remove
-        </button>
-      )}
-      
-      <h3 className="text-lg font-semibold mb-2">Project Entry {proIndex + 1}</h3>
-      
-      <div className="space-y-4">
-        {/* Basic Project Fields */}
-        {[
-          ['title', 'Project Title'],
-          ['tools', 'Project Tools']
-        ].map(([field, label]) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-2">
-              {label}:
-              <input
-                type="text"
-                value={String(entry[field as keyof Omit<ProjectEntry, 'items'>])}
-                onChange={(e) => handleProjectChange(proIndex, field as keyof Omit<ProjectEntry, 'items'>, e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-        ))}
+                  {/* Department */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Department: *
+                      <input
+                        type="text"
+                        value={author.department}
+                        onChange={(e) => handleAuthorChange(index, 'department', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Computer Science"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Start Date Fields */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Month:
-              <input
-                type="text"
-                value={entry.startMonth}
-                onChange={(e) => handleProjectChange(proIndex, 'startMonth', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Start Year:
-              <input
-                type="text"
-                value={entry.startYear}
-                onChange={(e) => handleProjectChange(proIndex, 'startYear', e.target.value)}
-                className="mt-1 block w-full p-2 border rounded-md"
-                required
-              />
-            </label>
-          </div>
+                  {/* Organization */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Organization: *
+                      <input
+                        type="text"
+                        value={author.organization}
+                        onChange={(e) => handleAuthorChange(index, 'organization', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Stanford University"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
 
-          {/* Present Toggle */}
-          <div className="col-span-2">
-            <label className="flex items-center space-x-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={entry.isPresent}
-                onChange={(e) => handleProjectChange(proIndex, 'isPresent', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500"
-              />
-              <span>Currently Working on this project</span>
-            </label>
-          </div>
+                  {/* City */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      City: *
+                      <input
+                        type="text"
+                        value={author.city}
+                        onChange={(e) => handleAuthorChange(index, 'city', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., New York"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
 
-          {/* End Date Fields - Only show if not present */}
-          {!entry.isPresent && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Month:
-                  <input
-                    type="text"
-                    value={entry.endMonth}
-                    onChange={(e) => handleProjectChange(proIndex, 'endMonth', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
+                  {/* Country */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Country: *
+                      <input
+                        type="text"
+                        value={author.country}
+                        onChange={(e) => handleAuthorChange(index, 'country', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., USA"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
+
+                  {/* Email */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Email Address: *
+                      <input
+                        type="email"
+                        value={author.email}
+                        onChange={(e) => handleAuthorChange(index, 'email', e.target.value)}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., john.doe@university.edu"
+                        required
+                        suppressHydrationWarning
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  End Year:
-                  <input
-                    type="text"
-                    value={entry.endYear}
-                    onChange={(e) => handleProjectChange(proIndex, 'endYear', e.target.value)}
-                    className="mt-1 block w-full p-2 border rounded-md"
-                    required
-                  />
-                </label>
+            ))}
+          </div>
+
+          {/* Output Filename */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Output Filename: *
+              <input
+                type="text"
+                value={outputFilename}
+                onChange={(e) => setOutputFilename(e.target.value)}
+                className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+                placeholder="e.g., my-ieee-report"
+                suppressHydrationWarning
+              />
+            </label>
+            <p className="text-sm text-gray-500 mt-2">
+              📄 Don&apos;t include .pdf extension - it will be added automatically
+            </p>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-md hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedTemplate || !title || !outputFilename}
+          >
+            🚀 Generate Report PDF
+          </button>
+
+          {/* Status Message */}
+          {status && (
+            <div className={`mt-4 p-4 rounded-md border-l-4 ${
+              status.includes('Error') 
+                ? 'bg-red-50 text-red-700 border-red-500' 
+                : status.includes('successfully')
+                ? 'bg-green-50 text-green-700 border-green-500'
+                : 'bg-blue-50 text-blue-700 border-blue-500'
+            }`}>
+              <div className="flex items-center gap-2">
+                {status.includes('Error') && <span className="text-xl">⚠️</span>}
+                {status.includes('successfully') && <span className="text-xl">✅</span>}
+                {status.includes('Generating') && <span className="text-xl">⏳</span>}
+                <span className="font-medium">{status}</span>
               </div>
-            </>
+            </div>
           )}
-        </div>
+        </form>
 
-        {/* Experience Items/Bullet Points */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-md font-medium">Description Points</h4>
-            <button
-              type="button"
-              onClick={() => addProjectItem(proIndex)}
-              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Add Point
-            </button>
+        {/* Instructions */}
+        <div className="mt-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+          <h3 className="font-bold text-blue-900 mb-3 text-lg flex items-center gap-2">
+            📚 Quick Guide
+          </h3>
+          <ul className="list-disc list-inside text-sm text-blue-800 space-y-2">
+            <li><strong>Step 1:</strong> Select an IEEE report template from the dropdown menu</li>
+            <li><strong>Step 2:</strong> Enter your report title (will appear as the main heading)</li>
+            <li><strong>Step 3:</strong> Fill in information for at least one author</li>
+            <li><strong>Step 4:</strong> Click &quot;Add Author&quot; to add up to 6 authors total</li>
+            <li><strong>Step 5:</strong> Enter a filename for your output PDF</li>
+            <li><strong>Step 6:</strong> Click &quot;Generate Report PDF&quot; to create your IEEE paper</li>
+          </ul>
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-md">
+            <p className="text-sm text-yellow-800">
+              <strong>⚠️ Note:</strong> All fields marked with * are required. The report will be generated in IEEE conference format.
+            </p>
           </div>
-          
-          {entry.items.map((item, itemIndex) => (
-            <div key={itemIndex} className="flex gap-2">
-              <input
-                type="text"
-                value={item.description}
-                onChange={(e) => handleProjectItemChange(proIndex, itemIndex, e.target.value)}
-                className="flex-1 p-2 border rounded-md"
-                placeholder="Enter description point"
-                required
-              />
-              {entry.items.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeProjectItem(proIndex, itemIndex)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
         </div>
       </div>
-    </div>
-  ))}
-</div>
-
-{/* Skills Section */}
-<div className="bg-gray-50 p-4 rounded-lg space-y-4">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-xl font-semibold">Technical Skills</h2>
-    <button
-      type="button"
-      onClick={addSkillType}
-      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
-    >
-      Add Skill Category
-    </button>
-  </div>
-
-  {skillEntries.map((skillType, typeIndex) => (
-    <div key={typeIndex} className="bg-white p-4 rounded-lg space-y-4 relative">
-      {skillEntries.length > 1 && (
-        <button
-          type="button"
-          onClick={() => removeSkillType(typeIndex)}
-          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-        >
-          Remove
-        </button>
-      )}
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Skill Category:
-            <input
-              type="text"
-              value={skillType.category}
-              onChange={(e) => handleSkillTypeChange(typeIndex, e.target.value)}
-              className="mt-1 block w-full p-2 border rounded-md"
-              placeholder="e.g., Programming Languages, Frameworks, Tools"
-              required
-            />
-          </label>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-md font-medium">Skills</h4>
-            <button
-              type="button"
-              onClick={() => addSkillItem(typeIndex)}
-              className="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Add Skill
-            </button>
-          </div>
-
-          {skillType.items.map((item, itemIndex) => (
-            <div key={itemIndex} className="flex gap-2">
-              <input
-                type="text"
-                value={item.name}
-                onChange={(e) => handleSkillItemChange(typeIndex, itemIndex, e.target.value)}
-                className="flex-1 p-2 border rounded-md"
-                placeholder="Enter skill"
-                required
-              />
-              {skillType.items.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeSkillItem(typeIndex, itemIndex)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
-
-        {/* Output Filename */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Output Filename:
-            <input
-              type="text"
-              name="outputFilename"
-              value={basicInfo.outputFilename}
-              onChange={handleBasicInfoChange}
-              className="mt-1 block w-full p-2 border rounded-md"
-              required
-              placeholder="my-resume"
-            />
-          </label>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition-colors font-medium"
-          disabled={!selectedTemplate || !basicInfo.outputFilename}
-        >
-          Generate Resume PDF
-        </button>
-
-        {status && (
-          <div className={`mt-4 p-4 rounded-md ${
-            status.includes('Error') 
-              ? 'bg-red-100 text-red-700 border border-red-400' 
-              : 'bg-green-100 text-green-700 border border-green-400'
-          }`}>
-            {status}
-          </div>
-        )}
-      </form>
     </div>
   );
 };
 
-export default TemplateForm;
+export default ReportTemplateForm;

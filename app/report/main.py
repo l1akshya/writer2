@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Dict, List
+from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -15,340 +15,218 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Original paths
+# Paths
 TEMPLATE_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\Tempelates"
 OUTPUT_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\outputs"
 
-# Original placeholders with education section separated
-BASIC_PLACEHOLDERS = {
-    "Place_Holder_Name": "Name",
-    "Place_Holder_contact": "Contact Number",
-    "Place_Holder_Mail": "Email",
-    "Place_Holder_linkedin": "LinkedIn Profile",
-    "Place_Holder_github": "GitHub Profile",
-}
-
-EDUCATION_PLACEHOLDERS = {
-    "PlaceHolderEducation": "\\parbox{8cm}{Education Institute}",
-    "PlaceHolderCourse": "\\parbox{8cm}{Course Undertaken}",
-    "PlaceHolderScore": "\\parbox{8cm}{Percentage/GPA}",
-    "PlaceHolderLocation1": "\\parbox{8cm}{Location of Institute}",
-    "PlaceHolderStartMonth": "\\makebox[2cm][l]{Start Month}",
-    "PlaceHolderStartYear": "\\makebox[2cm][l]{Start Year}",
-    "PlaceHolderEndMonth": "\\makebox[2cm][l]{End Month}",
-    "PlaceHolderEndYear": "\\makebox[2cm][l]{End Year}"
-}
-
-EXPERIENCE_PLACEHOLDERS = {
-    "PlaceHolderExperiencePosition1": "Position Title",
-    "PlaceHolderExperiencePositionCompany": "Company Name",
-    "PlaceHolderExperiencePositionLocation": "Location",
-    "PlaceHolderExperiencePositionStartMonth": "Start Month",
-    "PlaceHolderExperiencePositionStartYear": "Start Year",
-    "PlaceHolderExperiencePositionEndMonth": "End Month",
-    "PlaceHolderExperiencePositionEndYear": "End Year",
-    "PlaceHolderExpeienceItem1": "Experience Description"
+# Default placeholders
+REPORT_PLACEHOLDERS = {
+    "PlaceHolderTitle": "Document Title",
+    "PlaceHolderAuthorName": "Author Name",
+    "PlaceHolderDepartmentName": "Department Name",
+    "PlaceHolderOrganizationName": "Organization Name",
+    "PlaceHolderCity": "City",
+    "PlaceHolderCountry": "Country",
+    "PlaceHolderEmail": "Email Address"
 }
 
 
-PROJECT_PLACEHOLDERS = {
-    "PlaceHolderProjectTitle": "Project Title",
-    "PlaceHolderProjectTool1": "Project Tools",
-    "PlaceHolderProjectStartMonth": "Start Month",
-    "PlaceHolderProjectStartYear": "Start Year",
-    "PlaceHolderProjectEndMonth": "End Month",
-    "PlaceHolderProjectEndYear": "End Year",
-    "PlaceHolderProjectItem1": "Project Description"
-}
-
-SKILLS_PLACEHOLDERS = {
-    "PlaceHolderSkillType1": "Skill Category",
-    "PlaceHolderSkillItem1": "Skills List"
-}
-
-class EducationEntry(BaseModel):
-    education: str
-    course: str
-    location: str
-    startMonth: str
-    startYear: str
-    endMonth: str
-    endYear: str
-    score:str
-    isPresent: bool = False  # Added isPresent field with default value False
-
-class ExperienceItem(BaseModel):
-    description: str
-
-class ExperienceEntry(BaseModel):
-    position: str
-    company: str
-    location: str
-    startMonth: str
-    startYear: str
-    endMonth: str
-    endYear: str
-    isPresent: bool = False
-    items: List[ExperienceItem]
-
-
-class ProjectItem(BaseModel):
-    description: str
-
-class ProjectEntry(BaseModel):
-    title: str
-    tools: str
-    startMonth: str
-    startYear: str
-    endMonth: str
-    endYear: str
-    isPresent: bool = False
-    items: List[ProjectItem]
-
-class SkillItem(BaseModel):
+class AuthorInfo(BaseModel):
     name: str
+    department: str
+    organization: str
+    city: str
+    country: str
+    email: str
 
-class SkillType(BaseModel):
-    category: str
-    items: List[SkillItem]
 
-class TemplateData(BaseModel):
+class ReportTemplateData(BaseModel):
     template_name: str
-    basic_info: Dict[str, str]
-    education_entries: List[EducationEntry]
-    experience_entries: List[ExperienceEntry]
-    project_entries: List[ProjectEntry]
-    skill_entries: List[SkillType]  # Add this line
+    title: str
+    authors: List[AuthorInfo]
     output_filename: str
+
 
 @app.get("/")
 async def root():
-    """Root endpoint to verify API is running."""
-    return {"message": "LaTeX Template Processing API is running"}
+    return {"message": "LaTeX Report Template Processing API is running on port 8002"}
 
-@app.get("/templates")
+
+@app.get("/report-templates")
 async def list_templates():
-    """Lists all available LaTeX templates."""
+    """List available templates"""
     if not os.path.isdir(TEMPLATE_FOLDER):
         raise HTTPException(status_code=404, detail="Template folder not found")
-    
-    text_files = [f for f in os.listdir(TEMPLATE_FOLDER) if f.endswith(".txt")]
-    
-    if not text_files:
+
+    files = [f for f in os.listdir(TEMPLATE_FOLDER) if f.endswith((".tex", ".txt"))]
+    if not files:
         raise HTTPException(status_code=404, detail="No templates found")
-    
-    return {i + 1: file for i, file in enumerate(text_files)}
 
-@app.get("/placeholders")
+    return {i + 1: f for i, f in enumerate(files)}
+
+
+@app.get("/report-placeholders")
 async def get_placeholders():
-    """Returns all available placeholders."""
-    return {
-        "basic_info": BASIC_PLACEHOLDERS,
-        "education": EDUCATION_PLACEHOLDERS,
-        "experience": EXPERIENCE_PLACEHOLDERS,
-        "project": PROJECT_PLACEHOLDERS,
-        "skill":SKILLS_PLACEHOLDERS
-    }
+    return {"report_info": REPORT_PLACEHOLDERS}
 
-def generate_education_latex(entries: List[EducationEntry]) -> str:
+
+def generate_authors_latex(authors: List[AuthorInfo]) -> str:
     """
-    Generates LaTeX code for multiple education entries.
-    Handles 'Present' status for current education.
+    Generate LaTeX authors block for IEEEtran conference template.
+    Each author gets ordinal superscript and is separated by \and.
     """
-    latex_entries = []
-    for entry in entries:
-        # Format the date range based on isPresent flag
-        if entry.isPresent:
-            date_range = f"{entry.startMonth} {entry.startYear} -- Present"
-        else:
-            date_range = f"{entry.startMonth} {entry.startYear} -- {entry.endMonth} {entry.endYear}"
-            
-        latex_entry = (
-            f"    \\resumeEducation\n"
-            f"      {{{entry.education}}}\n"
-            f"      {{{entry.location}}}\n"
-            f"      {{{entry.course}}}\n"
-            f"      {{{date_range}}}\n"
-            f"      {{{entry.score}}}"
+    if not authors:
+        raise ValueError("At least one author is required")
+    if len(authors) > 6:
+        raise ValueError("Maximum 6 authors are supported")
+    
+    ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"]
+    author_blocks = []
+
+    for idx, author in enumerate(authors):
+        ordinal = ordinals[idx]
+        block = (
+            r"\IEEEauthorblockN{" + str(idx+1) + r"\textsuperscript{" + ordinal + "} " + author.name + "}\n"
+            r"\IEEEauthorblockA{\textit{" + author.department + r"} \\" + "\n"
+            r"\textit{" + author.organization + r"}\\" + "\n"
+            + author.city + ", " + author.country + r" \\" + "\n"
+            + author.email + "}"
         )
-        latex_entries.append(latex_entry)
+        author_blocks.append(block)
+
+    # Join all blocks with \and
+    author_section = r"\author{" + "\n\\and\n".join(author_blocks) + "\n}"
+    return author_section
+
+
+def find_author_block_bounds(latex_code: str) -> tuple:
+    """Find the start and end positions of the \\author{...} block"""
+    # Look for \author{ (with actual backslash)
+    search_str = "\\author{"
+    author_start = latex_code.find(search_str)
     
-    return "\\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n\\resumeSubHeadingListEnd"
-
-
-def generate_experience_latex(entries: List[ExperienceEntry]) -> str:
-    """Generates LaTeX code for multiple experience entries."""
-    latex_entries = []
-    for entry in entries:
-        date_range = f"{entry.startMonth} {entry.startYear} -- {'Present' if entry.isPresent else f'{entry.endMonth} {entry.endYear}'}"
-        
-        # Create the experience items list
-        items_latex = "      \\resumeItemListStart\n"
-        for item in entry.items:
-            items_latex += f"        \\resumeItem{{{item.description}}}\n"
-        items_latex += "      \\resumeItemListEnd"
-        
-        latex_entry = (
-            f"    \\resumeSubheading\n"
-            f"      {{{entry.position}}}{{{date_range}}}\n"
-            f"      {{{entry.company}}}{{{entry.location}}}\n"
-            f"{items_latex}"
-        )
-        latex_entries.append(latex_entry)
+    if author_start == -1:
+        return None, None
     
-    return "\\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n\\resumeSubHeadingListEnd"
-
-
-def generate_project_latex(entries: List[ProjectEntry]) -> str:
-    """Generates LaTeX code for multiple project entries."""
-    latex_entries = []
-    for entry in entries:
-        date_range = f"{entry.startMonth} {entry.startYear} -- {'Present' if entry.isPresent else f'{entry.endMonth} {entry.endYear}'}"
-        
-        # Create the project items list
-        items_latex = "          \\resumeItemListStart\n"
-        for item in entry.items:
-            items_latex += f"            \\resumeItem{{{item.description}}}\n"
-        items_latex += "          \\resumeItemListEnd"
-        
-        latex_entry = (
-            f"      \\resumeProjectHeading\n"
-            f"          {{\\textbf{{{entry.title}}} $|$ \\emph{{{entry.tools}}}}}{{{date_range}}}\n"
-            f"{items_latex}"
-        )
-        latex_entries.append(latex_entry)
+    # Find matching closing brace
+    brace_count = 0
+    i = author_start + len(search_str) - 1  # Start at the opening brace
     
-    return "    \\resumeSubHeadingListStart\n" + "\n".join(latex_entries) + "\n    \\resumeSubHeadingListEnd"
-
-def generate_skills_latex(entries: List[SkillType]) -> str:
-    """Generates LaTeX code for skills section."""
-    skill_lines = []
+    while i < len(latex_code):
+        if latex_code[i] == '{':
+            brace_count += 1
+        elif latex_code[i] == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                return author_start, i + 1
+        i += 1
     
-    for entry in entries:
-        # Join skill items with commas
-        skills_str = ", ".join(item.name for item in entry.items)
-        skill_line = f"    \\small{{\\item{{\n     \\textbf{{{entry.category}}}{{: {skills_str}}} \n    }}}}"
-        skill_lines.append(skill_line)
-    
-    return " \\begin{itemize}[leftmargin=0.15in, label={}]\n" + "\n".join(skill_lines) + "\n \\end{itemize}"
+    return None, None
 
-@app.post("/generate-pdf")
-async def generate_pdf(template_data: TemplateData):
-    """Generates a PDF from a template with provided data."""
-    # Validate template exists
+
+@app.post("/generate-report-pdf")
+async def generate_report_pdf(template_data: ReportTemplateData):
+    """Generate PDF using a LaTeX template"""
     template_path = os.path.join(TEMPLATE_FOLDER, template_data.template_name)
     if not os.path.exists(template_path):
         raise HTTPException(status_code=404, detail="Template not found")
+
+    if not template_data.authors:
+        raise HTTPException(status_code=400, detail="At least one author is required")
+
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
     try:
-        # Read template
+        # Read LaTeX template with explicit encoding
         with open(template_path, "r", encoding="utf-8") as f:
             latex_code = f.read()
-        
-        # Replace basic info placeholders
-        modified_code = latex_code
-        for placeholder, value in template_data.basic_info.items():
-            if placeholder in BASIC_PLACEHOLDERS:
-                modified_code = modified_code.replace(placeholder, value)
-        
-        # Replace education section
-        education_pattern = (
-            "\\resumeSubHeadingListStart\n"
-            "    \\resumeEducation\n"
-            "      {PlaceHolderEducation}\n"
-            "      {PlaceHolderLocation1}\n"
-            "      {PlaceHolderCourse}\n"
-            "      {PlaceHolderStartMonth PlaceHolderStartYear -- PlaceHolderEndMonth PlaceHolderEndYear}\n"
-            "      {PlaceHolderScore}\n"
-            "\\resumeSubHeadingListEnd"
-        )
-        education_section = generate_education_latex(template_data.education_entries)
-        modified_code = modified_code.replace(education_pattern, education_section)
-        
-        # Replace experience section
-        experience_pattern = (
-            "  \\resumeSubHeadingListStart\n"
-            "    \\resumeSubheading\n"
-            "      {PlaceHolderExperiencePosition1}{PlaceHolderExperiencePositionStartMonth PlaceHolderExperiencePositionStartYear -- PlaceHolderExperiencePositionEndMonth PlaceHolderExperiencePositionStartYear}\n"
-            "      {PlaceHolderExperiencePositionCompany}{PlaceHolderExperiencePositionLocation}\n"
-            "      \\resumeItemListStart\n"
-            "        \\resumeItem{PlaceHolderExperienceItem1}\n"
-            "      \\resumeItemListEnd\n"
-            "  \\resumeSubHeadingListEnd"
-        )
-        experience_section = generate_experience_latex(template_data.experience_entries)
-        modified_code = modified_code.replace(experience_pattern, experience_section)
 
-        project_pattern = (
-            "    \\resumeSubHeadingListStart\n"
-            "      \\resumeProjectHeading\n"
-            "          {\\textbf{PlaceHolderProjectTitle} $|$ \\emph{PlaceHolderProjectTool1}}{PlaceHolderProjectStartMonth PlaceHolderProjectStartYear -- PlaceHolderProjectEndMonth PlaceHolderProjectEndYear}\n"
-            "          \\resumeItemListStart\n"
-            "            \\resumeItem{PlaceHolderProjectItem1}\n"
-            "          \\resumeItemListEnd\n"
-            "    \\resumeSubHeadingListEnd"
-        )
-        project_section = generate_project_latex(template_data.project_entries)
-        print(project_section)
-        modified_code = modified_code.replace(project_pattern, project_section)
+        # Replace title (simple string replacement)
+        modified_code = latex_code.replace("PlaceHolderTitle", template_data.title)
 
-        skills_pattern = (
-            "\\begin{itemize}[leftmargin=0.15in, label={}]\n"
-            "    \\small{\\item{\n"
-            "     \\textbf{PlaceHolderSkillType1}{: PlaceHolderSkillItem1} \n"
-            "    }}\n"
-            " \\end{itemize}"
-        )
-        skills_section = generate_skills_latex(template_data.skill_entries)
-        modified_code = modified_code.replace(skills_pattern, skills_section)
-
-        # Ensure output directory exists
-        os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+        # Generate author section dynamically
+        authors_section = generate_authors_latex(template_data.authors)
         
-        # Create output filename
+        print("=" * 50)
+        print("Generated authors section:")
+        print(authors_section)
+        print("=" * 50)
+
+        # Find and replace the author block
+        start_pos, end_pos = find_author_block_bounds(modified_code)
+        
+        if start_pos is not None and end_pos is not None:
+            print(f"Found author block at positions {start_pos} to {end_pos}")
+            # Replace the author block
+            modified_code = modified_code[:start_pos] + authors_section + modified_code[end_pos:]
+        else:
+            print("No author block found, inserting before \\maketitle")
+            # If no author block found, insert before \maketitle
+            maketitle_pos = modified_code.find("\\maketitle")
+            if maketitle_pos != -1:
+                modified_code = modified_code[:maketitle_pos] + authors_section + "\n\n" + modified_code[maketitle_pos:]
+            else:
+                raise HTTPException(status_code=500, detail="Could not find insertion point for authors")
+
+        # Write temporary .tex file
         output_filename = template_data.output_filename
-        if not output_filename.endswith('.pdf'):
-            output_filename += '.pdf'
+        if not output_filename.endswith(".pdf"):
+            output_filename += ".pdf"
+
+        tex_path = os.path.join(OUTPUT_FOLDER, output_filename.replace(".pdf", ".tex"))
         
-        # Create temporary tex file
-        tex_file_path = os.path.join(OUTPUT_FOLDER, output_filename.replace(".pdf", ".tex"))
-        with open(tex_file_path, "w", encoding="utf-8") as f:
+        # Write with explicit UTF-8 encoding
+        with open(tex_path, "w", encoding="utf-8", newline='\n') as f:
             f.write(modified_code)
         
-        # Generate PDF using pdflatex
-        process = subprocess.run(
-            ["pdflatex", "-output-directory", OUTPUT_FOLDER, tex_file_path],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        
-        # Verify PDF was created
+        print(f"Wrote .tex file to: {tex_path}")
+
+        # Compile PDF twice for references
+        for run in range(2):
+            print(f"Running pdflatex (pass {run + 1})...")
+            result = subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-output-directory", OUTPUT_FOLDER, tex_path],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                # Log the error for debugging
+                log_path = tex_path.replace(".tex", "_error.log")
+                with open(log_path, "w", encoding="utf-8") as log_file:
+                    log_file.write("STDOUT:\n")
+                    log_file.write(result.stdout)
+                    log_file.write("\n\nSTDERR:\n")
+                    log_file.write(result.stderr)
+                print(f"LaTeX compilation error. Log saved to: {log_path}")
+
         pdf_path = os.path.join(OUTPUT_FOLDER, output_filename)
         if not os.path.exists(pdf_path):
-            raise HTTPException(status_code=500, detail="Failed to generate PDF")
-        
+            raise HTTPException(
+                status_code=500, 
+                detail="PDF not generated. Check LaTeX errors in the error log file in the outputs folder."
+            )
+
         # Clean up auxiliary files
-        for ext in ['.aux', '.log']:
-            aux_file = os.path.join(OUTPUT_FOLDER, output_filename.replace('.pdf', ext))
-            if os.path.exists(aux_file):
-                os.remove(aux_file)
-        
-        return {
-            "message": "PDF generated successfully",
-            "path": pdf_path
-        }
-        
-    except subprocess.CalledProcessError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"LaTeX compilation failed: {e.stderr}"
-        )
+        for ext in [".aux", ".log", ".out"]:
+            file = tex_path.replace(".tex", ext)
+            if os.path.exists(file):
+                try:
+                    os.remove(file)
+                except:
+                    pass
+
+        print(f"PDF generated successfully: {pdf_path}")
+        return {"message": "Report PDF generated successfully", "path": pdf_path}
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error generating PDF: {str(e)}"
-        )
+        print(f"Error in generate_report_pdf: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8002, reload=True)

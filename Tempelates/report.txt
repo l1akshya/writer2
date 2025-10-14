@@ -11,34 +11,14 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{a\\
+\title{PlaceHolderTitle\\
 }
 
-\author{
-\and
-\IEEEauthorblockN{1\textsuperscript{1st} b}
-\IEEEauthorblockA{\textit{c} \\
-\textit{d}\\
-e, f \\
-g@gmail.com}
-
-\IEEEauthorblockN{2\textsuperscript{2nd} h}
-\IEEEauthorblockA{\textit{i} \\
-\textit{j}\\
-k, l \\
-m@gmail.com}
-
-\IEEEauthorblockN{3\textsuperscript{3rd} n}
-\IEEEauthorblockA{\textit{o} \\
-\textit{p}\\
-q, r \\
-s@gmail.com}
-
-\IEEEauthorblockN{4\textsuperscript{4th} t}
-\IEEEauthorblockA{\textit{u} \\
-\textit{v}\\
-w, x \\
-y@gmail.com}
+\author{\IEEEauthorblockN{1\textsuperscript{st} PlaceHolderAuthorName}
+\IEEEauthorblockA{\textit{PlaceHolderDepartmentName} \\
+\textit{PlaceHolderOrganizationName}\\
+PlaceHolderCity, PlaceHolderCountry \\
+PlaceHolderEmail}
 }
 
 \maketitle

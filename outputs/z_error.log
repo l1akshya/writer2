@@ -1,0 +1,95 @@
+STDOUT:
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(c:/Users/DELL/OneDrive/Desktop/writer2/outputs/z.tex
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+(c:/texlive/2024/texmf-dist/tex/latex/ieeetran/IEEEtran.cls
+Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
+-- See the "IEEEtran_HOWTO" manual for usage information.
+-- http://www.michaelshell.org/tex/ieeetran/
+(c:/texlive/2024/texmf-dist/tex/latex/psnfss/ot1ptm.fd)
+-- Using 8.5in x 11in (letter) paper.
+-- Using PDF output.
+-- This is a 10 point document.
+)
+** ATTENTION: Overriding command lockouts (line 2).
+(c:/texlive/2024/texmf-dist/tex/latex/cite/cite.sty)
+(c:/texlive/2024/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(c:/texlive/2024/texmf-dist/tex/latex/amsmath/amstext.sty
+(c:/texlive/2024/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(c:/texlive/2024/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(c:/texlive/2024/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(c:/texlive/2024/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/ifthen.sty)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/keyval.sty))
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/graphicx.sty
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/graphics.sty
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/trig.sty)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-cfg/graphics.cfg)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-def/pdftex.def)))
+(c:/texlive/2024/texmf-dist/tex/latex/base/textcomp.sty)
+(c:/texlive/2024/texmf-dist/tex/latex/xcolor/xcolor.sty
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-cfg/color.cfg)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/mathcolor.ltx))
+(c:/texlive/2024/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
+(C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.aux)
+-- Lines per column: 56 (exact).
+(c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (c:/texlive/2024/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+(c:/texlive/2024/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg))
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/umsb.fd)
+
+[1{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/202
+4/texmf-dist/fonts/enc/dvips/base/8r.enc}]
+(c:/texlive/2024/texmf-dist/tex/latex/psnfss/ot1pcr.fd)
+
+[2]
+
+LaTeX Warning: File `fig1.png' not found on input line 219.
+
+
+! Package pdftex.def Error: File `fig1.png' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.219 \centerline{\includegraphics{fig1.png}}
+                                             
+(c:/texlive/2024/texmf-dist/tex/latex/psnfss/omsptm.fd)
+
+** Conference Paper **
+Before submitting the final camera ready copy, remember to:
+
+ 1. Manually equalize the lengths of two columns on the last page
+ of your paper;
+
+ 2. Ensure that any PostScript and/or PDF output post-processing
+ uses only Type 1 fonts and that every step in the generation
+ process uses the appropriate paper size.
+
+
+[3] (C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.aux) )
+(see the transcript file for additional information)<c:/texlive/2024/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2024/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2024/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmr6.pfb><c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmr7.pfb><c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pf
+b><c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><c:/texl
+ive/2024/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><c:/texlive/2024/texmf-d
+ist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2024/texmf-dist/fonts/type1/ur
+w/times/utmbi8a.pfb><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmr8a.pf
+b><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.pdf (3 pages
+, 132504 bytes).
+Transcript written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.log.
+
+
+STDERR:
