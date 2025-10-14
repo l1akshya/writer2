@@ -68,35 +68,47 @@ async def list_templates():
 @app.get("/report-placeholders")
 async def get_placeholders():
     return {"report_info": REPORT_PLACEHOLDERS}
-
-
-def generate_authors_latex(authors: List[AuthorInfo]) -> str:
+def generate_authors_latex(authors):
     """
     Generate LaTeX authors block for IEEEtran conference template.
-    Each author gets ordinal superscript and is separated by \and.
+    Arranged in 2 rows × 3 columns using minipages.
+    Supports 1–6 authors.
     """
     if not authors:
-        raise ValueError("At least one author is required")
-    if len(authors) > 6:
-        raise ValueError("Maximum 6 authors are supported")
-    
-    ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"]
+        return ""
+
     author_blocks = []
 
-    for idx, author in enumerate(authors):
-        ordinal = ordinals[idx]
-        block = (
-            r"\IEEEauthorblockN{" + str(idx+1) + r"\textsuperscript{" + ordinal + "} " + author.name + "}\n"
-            r"\IEEEauthorblockA{\textit{" + author.department + r"} \\" + "\n"
-            r"\textit{" + author.organization + r"}\\" + "\n"
-            + author.city + ", " + author.country + r" \\" + "\n"
-            + author.email + "}"
-        )
-        author_blocks.append(block)
+    # Fill missing authors with empty dicts to make 6 total
+    authors_full = authors + [{} for _ in range(6 - len(authors))]
 
-    # Join all blocks with \and
-    author_section = r"\author{" + "\n\\and\n".join(author_blocks) + "\n}"
-    return author_section
+    # Split into 2 rows of 3
+    rows = [authors_full[:3], authors_full[3:]]
+
+    for row in rows:
+        row_block = []
+        for author in row:
+            if author:
+                block = (
+                    r"\begin{minipage}[t]{0.32\textwidth}" + "\n"
+                    r"\centering" + "\n"
+                    r"\textbf{" + author["name"] + r"}\\" + "\n"
+                    r"\textit{" + author["department"] + r"}\\" + "\n"
+                    r"\textit{" + author["organization"] + r"}\\" + "\n"
+                    + author["city"] + ", " + author["country"] + r"\\" + "\n"
+                    + author["email"] + "\n"
+                    r"\end{minipage}"
+                )
+            else:
+                # empty block for missing authors
+                block = r"\begin{minipage}[t]{0.32\textwidth}\end{minipage}"
+            row_block.append(block)
+        # Join the 3 minipages horizontally with \hfill
+        author_blocks.append(" \hfill ".join(row_block))
+
+    # Join the 2 rows with \\[1em] for vertical spacing
+    final_authors_block = r"\author{" + "\n\\\\[1em]\n".join(author_blocks) + "\n}"
+    return final_authors_block
 
 
 def find_author_block_bounds(latex_code: str) -> tuple:

@@ -2,7 +2,7 @@ STDOUT:
 This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)
  restricted \write18 enabled.
 entering extended mode
-(c:/Users/DELL/OneDrive/Desktop/writer2/outputs/z.tex
+(c:/Users/DELL/OneDrive/Desktop/writer2/outputs/z9.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (c:/texlive/2024/texmf-dist/tex/latex/ieeetran/IEEEtran.cls
@@ -37,7 +37,7 @@ For additional information on amsmath, use the `?' option.
 (c:/texlive/2024/texmf-dist/tex/latex/graphics-cfg/color.cfg)
 (c:/texlive/2024/texmf-dist/tex/latex/graphics/mathcolor.ltx))
 (c:/texlive/2024/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
-(C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.aux)
+(C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z9.aux)
 -- Lines per column: 56 (exact).
 (c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -75,7 +75,7 @@ Before submitting the final camera ready copy, remember to:
 
 
 
-[3] (C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.aux) )
+[3] (C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z9.aux) )
 (see the transcript file for additional information)<c:/texlive/2024/texmf-dist
 /fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2024/texmf-dist/fonts/ty
 pe1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2024/texmf-dist/fonts/type1/public
@@ -86,9 +86,9 @@ ive/2024/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><c:/texlive/2024/texmf-d
 ist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2024/texmf-dist/fonts/type1/ur
 w/times/utmbi8a.pfb><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmr8a.pf
 b><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.pdf (3 pages
-, 132518 bytes).
-Transcript written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z.log.
+Output written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z9.pdf (3 page
+s, 132518 bytes).
+Transcript written on C:\Users\DELL\OneDrive\Desktop\writer2\outputs/z9.log.
 
 
 STDERR:
