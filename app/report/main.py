@@ -43,6 +43,9 @@ class AuthorInfo(BaseModel):
 class ReportTemplateData(BaseModel):
     template_name: str
     title: str
+    abstract: str
+    index_terms: str
+    introduction: str
     authors: List[AuthorInfo]
     output_filename: str
 
@@ -154,8 +157,17 @@ async def generate_report_pdf(template_data: ReportTemplateData):
         with open(template_path, "r", encoding="utf-8") as f:
             latex_code = f.read()
 
-        # Replace title (simple string replacement)
+        # Replace title
         modified_code = latex_code.replace("PlaceHolderTitle", template_data.title)
+        
+        # Replace abstract
+        modified_code = modified_code.replace("PlaceHolderAbstract", template_data.abstract)
+        
+        # Replace index terms
+        modified_code = modified_code.replace("PlaceHolderIndexTerms", template_data.index_terms)
+        
+        # Replace introduction
+        modified_code = modified_code.replace("PlaceHolderIntroduction", template_data.introduction)
 
         # Generate author section dynamically
         authors_section = generate_authors_latex(template_data.authors)

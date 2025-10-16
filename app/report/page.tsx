@@ -16,11 +16,14 @@ interface Templates {
 }
 
 const ReportTemplateForm: React.FC = () => {
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState<boolean>(false);
   const [templates, setTemplates] = useState<Templates>({});
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [title, setTitle] = useState('');
-  const [outputFilename, setOutputFilename] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [title, setTitle] = useState<string>('');
+  const [abstract, setAbstract] = useState<string>('');
+  const [indexTerms, setIndexTerms] = useState<string[]>(['']);
+  const [introduction, setIntroduction] = useState<string>('');
+  const [outputFilename, setOutputFilename] = useState<string>('');
   const [authors, setAuthors] = useState<AuthorInfo[]>([{
     name: '',
     department: '',
@@ -29,14 +32,14 @@ const ReportTemplateForm: React.FC = () => {
     country: '',
     email: ''
   }]);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
     const fetchTemplates = async () => {
       try {
         const response = await fetch('http://127.0.0.1:8002/report-templates');
-        const data = await response.json();
+        const data: Templates = await response.json();
         setTemplates(data);
       } catch (error) {
         setStatus('Error loading templates');
@@ -45,7 +48,7 @@ const ReportTemplateForm: React.FC = () => {
     fetchTemplates();
   }, []);
 
-  const handleAuthorChange = (index: number, field: keyof AuthorInfo, value: string) => {
+  const handleAuthorChange = (index: number, field: keyof AuthorInfo, value: string): void => {
     setAuthors(prev => {
       const newAuthors = [...prev];
       newAuthors[index] = {
@@ -56,7 +59,7 @@ const ReportTemplateForm: React.FC = () => {
     });
   };
 
-  const addAuthor = () => {
+  const addAuthor = (): void => {
     if (authors.length < 6) {
       setAuthors(prev => [...prev, {
         name: '',
@@ -72,17 +75,37 @@ const ReportTemplateForm: React.FC = () => {
     }
   };
 
-  const removeAuthor = (index: number) => {
+  const removeAuthor = (index: number): void => {
     if (authors.length > 1) {
       setAuthors(prev => prev.filter((_, i) => i !== index));
     }
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleIndexTermChange = (index: number, value: string): void => {
+    setIndexTerms(prev => {
+      const newTerms = [...prev];
+      newTerms[index] = value;
+      return newTerms;
+    });
+  };
+
+  const addIndexTerm = (): void => {
+    setIndexTerms(prev => [...prev, '']);
+  };
+
+  const removeIndexTerm = (index: number): void => {
+    if (indexTerms.length > 1) {
+      setIndexTerms(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setStatus('Generating Report PDF...');
 
     try {
+      const indexTermsStr = indexTerms.filter(term => term.trim()).join(', ');
+
       const response = await fetch('http://127.0.0.1:8002/generate-report-pdf', {
         method: 'POST',
         headers: {
@@ -91,6 +114,9 @@ const ReportTemplateForm: React.FC = () => {
         body: JSON.stringify({
           template_name: selectedTemplate,
           title: title,
+          abstract: abstract,
+          index_terms: indexTermsStr,
+          introduction: introduction,
           authors: authors,
           output_filename: outputFilename,
         }),
@@ -103,7 +129,6 @@ const ReportTemplateForm: React.FC = () => {
     }
   };
 
-  // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return null;
   }
@@ -123,12 +148,12 @@ const ReportTemplateForm: React.FC = () => {
               Select Template: *
               <select 
                 value={selectedTemplate}
-                onChange={(e) => setSelectedTemplate(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedTemplate(e.target.value)}
                 className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">Choose a template</option>
-                {Object.entries(templates).map(([id, name]) => (
+                {Object.entries(templates).map(([id, name]: [string, string]) => (
                   <option key={id} value={name}>{name}</option>
                 ))}
               </select>
@@ -144,13 +169,79 @@ const ReportTemplateForm: React.FC = () => {
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                   className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter your report title"
                   required
                 />
               </label>
             </div>
+          </div>
+
+          {/* Abstract */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Abstract: *
+              <textarea
+                value={abstract}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAbstract(e.target.value)}
+                className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your abstract"
+                rows={4}
+                required
+              />
+            </label>
+          </div>
+
+          {/* Index Terms */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-800">Index Terms</h2>
+              <button
+                type="button"
+                onClick={addIndexTerm}
+                className="px-3 py-2 rounded-md text-sm bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg transition-colors font-medium"
+              >
+                + Add Term
+              </button>
+            </div>
+            
+            {indexTerms.map((term: string, index: number) => (
+              <div key={index} className="flex gap-2 items-end">
+                <input
+                  type="text"
+                  value={term}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleIndexTermChange(index, e.target.value)}
+                  className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder={`Index term ${index + 1}`}
+                />
+                {indexTerms.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeIndexTerm(index)}
+                    className="px-3 py-2 text-sm text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <p className="text-xs text-gray-500">Terms will be separated by commas in the report</p>
+          </div>
+
+          {/* Introduction */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Introduction: *
+              <textarea
+                value={introduction}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setIntroduction(e.target.value)}
+                className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your introduction"
+                rows={4}
+                required
+              />
+            </label>
           </div>
 
           {/* Authors Section */}
@@ -171,7 +262,7 @@ const ReportTemplateForm: React.FC = () => {
               </button>
             </div>
 
-            {authors.map((author, index) => (
+            {authors.map((author: AuthorInfo, index: number) => (
               <div key={index} className="bg-white p-5 rounded-lg space-y-4 relative border-2 border-gray-300 shadow-sm">
                 {authors.length > 1 && (
                   <button
@@ -200,7 +291,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="text"
                         value={author.name}
-                        onChange={(e) => handleAuthorChange(index, 'name', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'name', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., John Doe"
                         required
@@ -216,7 +307,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="text"
                         value={author.department}
-                        onChange={(e) => handleAuthorChange(index, 'department', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'department', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., Computer Science"
                         required
@@ -232,7 +323,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="text"
                         value={author.organization}
-                        onChange={(e) => handleAuthorChange(index, 'organization', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'organization', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., Stanford University"
                         required
@@ -248,7 +339,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="text"
                         value={author.city}
-                        onChange={(e) => handleAuthorChange(index, 'city', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'city', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., New York"
                         required
@@ -264,7 +355,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="text"
                         value={author.country}
-                        onChange={(e) => handleAuthorChange(index, 'country', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'country', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., USA"
                         required
@@ -280,7 +371,7 @@ const ReportTemplateForm: React.FC = () => {
                       <input
                         type="email"
                         value={author.email}
-                        onChange={(e) => handleAuthorChange(index, 'email', e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorChange(index, 'email', e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., john.doe@university.edu"
                         required
@@ -300,7 +391,7 @@ const ReportTemplateForm: React.FC = () => {
               <input
                 type="text"
                 value={outputFilename}
-                onChange={(e) => setOutputFilename(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setOutputFilename(e.target.value)}
                 className="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
                 placeholder="e.g., my-ieee-report"
@@ -308,7 +399,7 @@ const ReportTemplateForm: React.FC = () => {
               />
             </label>
             <p className="text-sm text-gray-500 mt-2">
-              📄 Don&apos;t include .pdf extension - it will be added automatically
+              Don't include .pdf extension - it will be added automatically
             </p>
           </div>
 
@@ -316,9 +407,9 @@ const ReportTemplateForm: React.FC = () => {
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-md hover:from-blue-600 hover:to-blue-700 transition-all font-semibold text-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!selectedTemplate || !title || !outputFilename}
+            disabled={!selectedTemplate || !title || !abstract || !introduction || !outputFilename}
           >
-            🚀 Generate Report PDF
+            Generate Report PDF
           </button>
 
           {/* Status Message */}
@@ -331,9 +422,9 @@ const ReportTemplateForm: React.FC = () => {
                 : 'bg-blue-50 text-blue-700 border-blue-500'
             }`}>
               <div className="flex items-center gap-2">
-                {status.includes('Error') && <span className="text-xl">⚠️</span>}
-                {status.includes('successfully') && <span className="text-xl">✅</span>}
-                {status.includes('Generating') && <span className="text-xl">⏳</span>}
+                {status.includes('Error') && <span className="text-xl">!</span>}
+                {status.includes('successfully') && <span className="text-xl">✓</span>}
+                {status.includes('Generating') && <span className="text-xl">...</span>}
                 <span className="font-medium">{status}</span>
               </div>
             </div>
@@ -342,20 +433,21 @@ const ReportTemplateForm: React.FC = () => {
 
         {/* Instructions */}
         <div className="mt-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
-          <h3 className="font-bold text-blue-900 mb-3 text-lg flex items-center gap-2">
-            📚 Quick Guide
-          </h3>
+          <h3 className="font-bold text-blue-900 mb-3 text-lg">Quick Guide</h3>
           <ul className="list-disc list-inside text-sm text-blue-800 space-y-2">
             <li><strong>Step 1:</strong> Select an IEEE report template from the dropdown menu</li>
-            <li><strong>Step 2:</strong> Enter your report title (will appear as the main heading)</li>
-            <li><strong>Step 3:</strong> Fill in information for at least one author</li>
-            <li><strong>Step 4:</strong> Click &quot;Add Author&quot; to add up to 6 authors total</li>
-            <li><strong>Step 5:</strong> Enter a filename for your output PDF</li>
-            <li><strong>Step 6:</strong> Click &quot;Generate Report PDF&quot; to create your IEEE paper</li>
+            <li><strong>Step 2:</strong> Enter your report title</li>
+            <li><strong>Step 3:</strong> Write your abstract</li>
+            <li><strong>Step 4:</strong> Add index terms using the + button (terms will be comma-separated)</li>
+            <li><strong>Step 5:</strong> Write your introduction</li>
+            <li><strong>Step 6:</strong> Fill in author information for at least one author</li>
+            <li><strong>Step 7:</strong> Click "Add Author" to add up to 6 authors total</li>
+            <li><strong>Step 8:</strong> Enter a filename for your output PDF</li>
+            <li><strong>Step 9:</strong> Click "Generate Report PDF" to create your IEEE paper</li>
           </ul>
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-md">
             <p className="text-sm text-yellow-800">
-              <strong>⚠️ Note:</strong> All fields marked with * are required. The report will be generated in IEEE conference format.
+              <strong>Note:</strong> All fields marked with * are required. The report will be generated in IEEE conference format.
             </p>
           </div>
         </div>
