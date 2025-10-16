@@ -1,102 +1,186 @@
 import os
 import subprocess
 
+# Folder paths (update if needed)
+TEMPLATE_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\Tempelates"
+OUTPUT_FOLDER = r"C:\Users\DELL\OneDrive\Desktop\writer2\outputs"
+
+# Placeholders expected inside the LaTeX template
 PLACEHOLDERS = {
-    "Place_Holder_Name": "Enter your name: ",
-    "Place_Holder_contact": "Enter your contact number: ",
-    "Place_Holder_Mail": "Enter your email: ",
-    "Place_Holder_linkedin": "Enter your LinkedIn profile link: ",
-    "Place_Holder_github": "Enter your GitHub profile link: "
+    "PlaceHolderTitle": "Enter report title: ",
+    "PlaceHolderAuthor": "Enter author details: ",
+    "PlaceHolderInstitution": "Enter institution name: ",
+    "PlaceHolderDate": "Enter date (e.g., October 14, 2025): ",
+    "PlaceHolderAbstract": "Enter abstract (type DONE when finished):\n",
+    "PlaceHolderBody": "Enter report body (type DONE when finished):\n"
 }
 
-def list_text_files(folder_path):
-    """Lists and numbers all text files in the given folder path."""
-    if not os.path.isdir(folder_path):
-        raise ValueError("Invalid folder path")
 
-    text_files = [f for f in os.listdir(folder_path) if f.endswith(".txt")]
-    
-    if not text_files:
-        print("No text files found.")
+def list_text_files(folder_path):
+    """List all .txt LaTeX templates in the folder."""
+    if not os.path.isdir(folder_path):
+        print(f"❌ Error: '{folder_path}' is not a valid folder.")
         return {}
 
-    file_dict = {i + 1: file for i, file in enumerate(text_files)}
+    text_files = [f for f in os.listdir(folder_path) if f.endswith(".txt")]
 
-    for num, name in file_dict.items():
-        print(f"{num}. {name}")
+    if not text_files:
+        print(f"⚠️ No .txt templates found in '{folder_path}'")
+        return {}
+
+    print("\nAvailable Templates:")
+    file_dict = {i + 1: file for i, file in enumerate(text_files)}
+    for i, name in file_dict.items():
+        print(f" {i}. {name}")
 
     return file_dict
 
+
 def choose_file(file_dict):
-    """Allows the user to choose a file by entering a number."""
+    """Prompt the user to choose one of the listed templates."""
     try:
-        choice = int(input("Enter the number of the file you want to select: "))
-        return file_dict.get(choice, None)
-    except ValueError:
-        print("Invalid input. Please enter a valid number.")
+        choice = int(input("\nEnter the number of the template you want to use: "))
+        return file_dict.get(choice)
+    except (ValueError, KeyError):
+        print("⚠️ Invalid selection.")
         return None
 
-def read_latex_file(file_path):
-    """Reads the content of the selected LaTeX file."""
-    with open(file_path, "r", encoding="utf-8") as f:
-        return f.read()
+
+def read_latex_template(file_path):
+    """Read LaTeX code stored in a .txt file."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        print(f"❌ Error reading template: {e}")
+        return None
+
+
+def get_multiline_input(prompt):
+    """Capture multiline text input until 'DONE'."""
+    print(prompt)
+    lines = []
+    print("(Type 'DONE' on a new line when finished)\n")
+    while True:
+        line = input()
+        if line.strip().upper() == "DONE":
+            break
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def get_authors():
+    """Capture multiple author details interactively."""
+    authors = []
+    print("Enter author details (up to 6 authors).")
+    for i in range(6):
+        print(f"\nAuthor {i+1} (leave name blank to stop):")
+        name = input("  Name: ").strip()
+        if not name:
+            break
+        department = input("  Department: ").strip()
+        organization = input("  Organization: ").strip()
+        city = input("  City: ").strip()
+        country = input("  Country: ").strip()
+        email = input("  Email: ").strip()
+        authors.append({
+            "name": name,
+            "department": department,
+            "organization": organization,
+            "city": city,
+            "country": country,
+            "email": email
+        })
+    return authors
+
+
+def generate_authors_latex(authors):
+    """
+    Generate LaTeX authors block for IEEEtran conference template.
+    Each author gets ordinal superscript and is separated by \and.
+    """
+    if not authors:
+        return ""
+
+    ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th"]
+    author_blocks = []
+
+    for idx, author in enumerate(authors):
+        ordinal = ordinals[idx]
+        block = (
+            r"\IEEEauthorblockN{" + str(idx+1) + r"\textsuperscript{" + ordinal + "} " + author["name"] + "}\n"
+            r"\IEEEauthorblockA{\textit{" + author["department"] + r"} \\" + "\n"
+            r"\textit{" + author["organization"] + r"}\\" + "\n"
+            + author["city"] + ", " + author["country"] + r" \\" + "\n"
+            + author["email"] + "}"
+        )
+        author_blocks.append(block)
+
+    # Join all blocks with \and
+    author_section = r"\author{" + "\n\\and\n".join(author_blocks) + "\n}"
+    return author_section
+
 
 def replace_placeholders(latex_code):
-    """
-    Searches for placeholders and replaces them with user input.
-    Saves the modified LaTeX code to a temporary text file.
-    """
-    modified_code = latex_code
+    """Replace placeholders with user input interactively."""
+    for placeholder, message in PLACEHOLDERS.items():
+        if placeholder in latex_code:
+            if placeholder == "PlaceHolderAuthor":
+                authors_list = get_authors()
+                user_input = generate_authors_latex(authors_list)
+            elif "Body" in placeholder or "Abstract" in placeholder:
+                user_input = get_multiline_input(message)
+            else:
+                user_input = input(message)
+            latex_code = latex_code.replace(placeholder, user_input)
+    return latex_code
 
-    for placeholder, prompt in PLACEHOLDERS.items():
-        if placeholder in modified_code:
-            user_input = input(prompt)
-            modified_code = modified_code.replace(placeholder, user_input)
-
-    return modified_code
 
 def create_pdf_from_latex(latex_code, output_folder, output_filename):
-    """
-    Generates a PDF from the LaTeX code using pdflatex.
-    The LaTeX file is named based on the output PDF filename.
-    """
+    """Write .tex and generate PDF using pdflatex."""
     os.makedirs(output_folder, exist_ok=True)
+    tex_path = os.path.join(output_folder, output_filename.replace(".pdf", ".tex"))
 
-    tex_file_path = os.path.join(output_folder, output_filename.replace(".pdf", ".tex"))
-    
-    with open(tex_file_path, "w", encoding="utf-8") as f:
+    with open(tex_path, "w", encoding="utf-8") as f:
         f.write(latex_code)
 
     try:
-        subprocess.run(["pdflatex", "-output-directory", output_folder, tex_file_path], check=True)
-        print(f"PDF generated successfully: {os.path.join(output_folder, output_filename)}")
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", output_folder, tex_path],
+            check=True
+        )
+        print(f"✅ PDF generated successfully: {os.path.join(output_folder, output_filename)}")
     except FileNotFoundError:
-        print("Error: pdflatex not found. Make sure LaTeX is installed (TeX Live, MiKTeX).")
+        print("❌ Error: pdflatex not installed. Please install TeX Live or MiKTeX.")
     except subprocess.CalledProcessError:
-        print("Error: Failed to compile LaTeX file.")
+        print("❌ Error compiling LaTeX — check for syntax issues.")
 
-# Set folder paths
-folder = r"C:\Users\DELL\OneDrive\Desktop\writer\Tempelates"
-output_folder = r"C:\Users\DELL\OneDrive\Desktop\writer\outputs"
 
-# File selection
-print("Select Template:")
-file_dict = list_text_files(folder)
+def main():
+    print("=== LaTeX Report Generator ===")
+    file_dict = list_text_files(TEMPLATE_FOLDER)
 
-if file_dict:
-    selected_file = choose_file(file_dict)
-    if selected_file:
-        file_path = os.path.join(folder, selected_file)
-        latex_code = read_latex_file(file_path)
-        modified_latex_code = replace_placeholders(latex_code)
+    if not file_dict:
+        print("No templates found. Exiting.")
+        return
 
-        # Ask user for the output PDF file name
-        output_filename = input("Enter the output PDF file name (without .pdf extension): ").strip()
-        if not output_filename:
-            output_filename = "output"  # Default name if the user provides an empty string
-        output_filename += ".pdf"  # Ensure the file has a .pdf extension
+    selected = choose_file(file_dict)
+    if not selected:
+        print("No valid file selected. Exiting.")
+        return
 
-        create_pdf_from_latex(modified_latex_code, output_folder, output_filename)
-    else:
-        print("Invalid selection.")
+    file_path = os.path.join(TEMPLATE_FOLDER, selected)
+    latex_code = read_latex_template(file_path)
+    if not latex_code:
+        print("Error loading template. Exiting.")
+        return
 
+    filled_code = replace_placeholders(latex_code)
+    output_filename = input("\nEnter output PDF filename (without extension): ").strip() or "report"
+    output_filename += ".pdf"
+
+    create_pdf_from_latex(filled_code, OUTPUT_FOLDER, output_filename)
+
+
+if __name__ == "__main__":
+    main()

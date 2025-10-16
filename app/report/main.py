@@ -68,6 +68,7 @@ async def list_templates():
 @app.get("/report-placeholders")
 async def get_placeholders():
     return {"report_info": REPORT_PLACEHOLDERS}
+
 def generate_authors_latex(authors):
     """
     Generate LaTeX authors block for IEEEtran conference template.
@@ -88,15 +89,16 @@ def generate_authors_latex(authors):
     for row in rows:
         row_block = []
         for author in row:
-            if author:
+            if author:  # Check if author dict is not empty
+                # Access as object attributes, not dictionary keys
                 block = (
                     r"\begin{minipage}[t]{0.32\textwidth}" + "\n"
                     r"\centering" + "\n"
-                    r"\textbf{" + author["name"] + r"}\\" + "\n"
-                    r"\textit{" + author["department"] + r"}\\" + "\n"
-                    r"\textit{" + author["organization"] + r"}\\" + "\n"
-                    + author["city"] + ", " + author["country"] + r"\\" + "\n"
-                    + author["email"] + "\n"
+                    r"\textbf{" + author.name + r"}\\" + "\n"
+                    r"\textit{" + author.department + r"}\\" + "\n"
+                    r"\textit{" + author.organization + r"}\\" + "\n"
+                    + author.city + ", " + author.country + r"\\" + "\n"
+                    + author.email + "\n"
                     r"\end{minipage}"
                 )
             else:
@@ -109,7 +111,6 @@ def generate_authors_latex(authors):
     # Join the 2 rows with \\[1em] for vertical spacing
     final_authors_block = r"\author{" + "\n\\\\[1em]\n".join(author_blocks) + "\n}"
     return final_authors_block
-
 
 def find_author_block_bounds(latex_code: str) -> tuple:
     """Find the start and end positions of the \\author{...} block"""
